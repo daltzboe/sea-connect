@@ -100,9 +100,7 @@ export default function SignUp() {
         }
 
         if (password.length < 8) {
-            setError(
-                "Password must be at least 8 characters."
-            );
+            setError("Password must be at least 8 characters.");
             return;
         }
 
@@ -138,23 +136,36 @@ export default function SignUp() {
     }
 
     return (
-        <main className="min-h-screen bg-gray-100 px-5 py-10 text-[#0C2340]">
+        <main className="min-h-screen bg-[#071522] px-5 py-8 text-white">
 
             <div className="mx-auto max-w-md">
 
-                {/* Logo */}
+                {/* Top */}
                 <div className="text-center">
 
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0C2340] text-2xl font-bold text-white">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#16803A] text-xl font-bold shadow-lg">
                         SEA
                     </div>
 
-                    <h1 className="mt-5 text-3xl font-bold">
+                    <div className="mt-4 flex justify-center gap-2 text-lg">
+                        <span>🇹🇿</span>
+                        <span>🇰🇪</span>
+                        <span>🇺🇬</span>
+                        <span>🇪🇹</span>
+                        <span>🇸🇴</span>
+                        <span>🇷🇼</span>
+                    </div>
+
+                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.25em] text-[#F4C430]">
+                        Students of East Africa
+                    </p>
+
+                    <h1 className="mt-2 text-3xl font-bold">
                         Create your account
                     </h1>
 
-                    <p className="mt-2 text-sm text-gray-500">
-                        Join the Students of East Africa community
+                    <p className="mt-2 text-sm text-gray-300">
+                        Join the SEA community at UTSA
                     </p>
 
                 </div>
@@ -162,14 +173,14 @@ export default function SignUp() {
                 {/* Form */}
                 <form
                     onSubmit={handleSubmit}
-                    className="mt-8 rounded-2xl bg-white p-6 shadow-sm"
+                    className="mt-8 rounded-3xl bg-white p-6 text-[#0C2340] shadow-2xl"
                 >
 
                     {/* Full Name */}
                     <div>
                         <label
                             htmlFor="fullName"
-                            className="text-sm font-medium"
+                            className="text-sm font-semibold"
                         >
                             Full Name
                         </label>
@@ -182,7 +193,7 @@ export default function SignUp() {
                                 setFullName(event.target.value)
                             }
                             placeholder="Enter your full name"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#F15A24]"
+                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-[#16803A] focus:ring-2 focus:ring-[#16803A]/10"
                         />
                     </div>
 
@@ -191,7 +202,7 @@ export default function SignUp() {
 
                         <label
                             htmlFor="country"
-                            className="text-sm font-medium"
+                            className="text-sm font-semibold"
                         >
                             Country
                         </label>
@@ -202,7 +213,7 @@ export default function SignUp() {
                             onChange={(event) =>
                                 setCountry(event.target.value)
                             }
-                            className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-[#16803A]"
+                            className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none transition focus:border-[#16803A] focus:ring-2 focus:ring-[#16803A]/10"
                         >
                             <option value="">
                                 Select your country
@@ -227,7 +238,7 @@ export default function SignUp() {
 
                         <label
                             htmlFor="email"
-                            className="text-sm font-medium"
+                            className="text-sm font-semibold"
                         >
                             Email Address
                         </label>
@@ -240,7 +251,7 @@ export default function SignUp() {
                                 setEmail(event.target.value)
                             }
                             placeholder="you@example.com"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#F15A24]"
+                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-[#16803A] focus:ring-2 focus:ring-[#16803A]/10"
                         />
 
                     </div>
@@ -250,7 +261,7 @@ export default function SignUp() {
 
                         <label
                             htmlFor="password"
-                            className="text-sm font-medium"
+                            className="text-sm font-semibold"
                         >
                             Password
                         </label>
@@ -263,7 +274,7 @@ export default function SignUp() {
                                 setPassword(event.target.value)
                             }
                             placeholder="Create a password"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#F15A24]"
+                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-[#16803A] focus:ring-2 focus:ring-[#16803A]/10"
                         />
 
                         <p className="mt-2 text-xs text-gray-400">
@@ -277,7 +288,7 @@ export default function SignUp() {
 
                         <label
                             htmlFor="confirmPassword"
-                            className="text-sm font-medium"
+                            className="text-sm font-semibold"
                         >
                             Confirm Password
                         </label>
@@ -290,21 +301,21 @@ export default function SignUp() {
                                 setConfirmPassword(event.target.value)
                             }
                             placeholder="Confirm your password"
-                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#F15A24]"
+                            className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-[#16803A] focus:ring-2 focus:ring-[#16803A]/10"
                         />
 
                     </div>
 
                     {/* Error */}
                     {error && (
-                        <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                             {error}
                         </div>
                     )}
 
                     {/* Success */}
                     {message && (
-                        <div className="mt-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                        <div className="mt-5 rounded-xl border border-[#16803A]/20 bg-[#16803A]/10 px-4 py-3 text-sm text-[#16803A]">
                             {message}
                         </div>
                     )}
@@ -313,7 +324,7 @@ export default function SignUp() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="mt-6 w-full rounded-xl bg-[#F15A24] px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="mt-6 w-full rounded-xl bg-[#16803A] px-4 py-3.5 font-semibold text-white shadow-md transition hover:bg-[#126B31] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading
                             ? "Creating Account..."
@@ -323,18 +334,23 @@ export default function SignUp() {
                 </form>
 
                 {/* Sign In */}
-                <p className="mt-6 text-center text-sm text-gray-500">
+                <p className="mt-6 text-center text-sm text-gray-400">
 
                     Already have an account?{" "}
 
                     <Link
                         href="/signin"
-                        className="font-semibold text-[#F15A24]"
+                        className="font-semibold text-[#F4C430] transition hover:text-white"
                     >
                         Sign in
                     </Link>
 
                 </p>
+
+                {/* Footer */}
+                <div className="mt-6 text-center text-xs text-gray-500">
+                    Students of East Africa • UTSA
+                </div>
 
             </div>
 

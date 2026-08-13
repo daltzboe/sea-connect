@@ -2,14 +2,16 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-      <main className="min-h-screen bg-[#0C2340] text-white">
+      <main className="min-h-screen bg-[#071522] text-white">
+
         <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
 
           {/* Header */}
           <header className="flex items-center justify-between">
+
             <div>
-              <h1 className="text-2xl font-bold">
-                SEA<span className="text-[#F15A24]">Connect</span>
+              <h1 className="text-2xl font-bold tracking-tight">
+                SEA<span className="text-[#F4C430]">Connect</span>
               </h1>
 
               <p className="text-sm text-gray-300">
@@ -17,46 +19,66 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F15A24] text-sm font-bold">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#16803A] text-sm font-bold shadow-lg">
               SEA
             </div>
+
           </header>
 
-          {/* Hero */}
-          <section className="flex flex-1 flex-col justify-center py-16">
+          {/* Flags */}
+          <div className="mt-7 flex flex-wrap gap-2 text-xl">
+            <span>🇹🇿</span>
+            <span>🇰🇪</span>
+            <span>🇺🇬</span>
+            <span>🇪🇹</span>
+            <span>🇸🇴</span>
+            <span>🇷🇼</span>
+            <span>🇧🇮</span>
+            <span>🇸🇸</span>
+            <span>🇪🇷</span>
+          </div>
 
-            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-[#F15A24]">
+          {/* Accent */}
+          <div className="mt-5 h-1 w-20 rounded-full bg-gradient-to-r from-[#16803A] via-[#F4C430] to-[#F15A24]" />
+
+          {/* Hero */}
+          <section className="flex flex-1 flex-col justify-center py-12">
+
+            <p className="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-[#F4C430]">
               UTSA
             </p>
 
-            <h2 className="text-5xl font-bold leading-tight">
+            <h2 className="text-5xl font-bold leading-tight tracking-tight">
               Connect.
               <br />
               Belong.
               <br />
-              <span className="text-[#F15A24]">Grow.</span>
+              <span className="text-[#16803A]">
+                            Grow.
+                        </span>
             </h2>
 
             <p className="mt-6 text-lg leading-7 text-gray-300">
-              Your home for Students of East Africa at UTSA. Stay connected
-              with events, meetings, announcements, and your community.
+              Your home for Students of East Africa at UTSA.
+              Stay connected with events, meetings,
+              announcements, and your community.
             </p>
 
           </section>
 
           {/* Buttons */}
-          <section className="space-y-4">
+          <section className="space-y-3">
 
             <Link
                 href="/signin"
-                className="block w-full rounded-2xl bg-[#F15A24] px-6 py-4 text-center text-lg font-semibold transition hover:opacity-90"
+                className="block w-full rounded-2xl bg-[#16803A] px-6 py-4 text-center text-lg font-semibold text-white shadow-lg transition hover:bg-[#126B31] active:scale-[0.98]"
             >
               Sign In
             </Link>
 
             <Link
                 href="/signup"
-                className="block w-full rounded-2xl border border-white/30 px-6 py-4 text-center text-lg font-semibold transition hover:bg-white/10"
+                className="block w-full rounded-2xl border-2 border-[#F4C430]/70 bg-transparent px-6 py-4 text-center text-lg font-semibold text-white transition hover:bg-[#F4C430]/10 active:scale-[0.98]"
             >
               Create Account
             </Link>
@@ -65,10 +87,28 @@ export default function Home() {
 
           {/* Footer */}
           <footer className="pt-8 text-center text-sm text-gray-400">
-            Students of East Africa • UTSA
+
+            <p>
+              Students of East Africa • UTSA
+            </p>
+
+            <div className="mt-3 flex justify-center gap-2 text-sm">
+              <span>🇹🇿</span>
+              <span>🇰🇪</span>
+              <span>🇺🇬</span>
+              <span>🇪🇹</span>
+              <span>🇸🇴</span>
+              <span>🇷🇼</span>
+            </div>
+            <div className="mt-3 flex justify-center gap-2 text-sm">
+
+              founded by Dalton Opudo @2026
+            </div>
+
           </footer>
 
         </div>
+
       </main>
   );
 }
