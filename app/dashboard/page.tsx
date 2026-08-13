@@ -618,12 +618,9 @@ export default async function Dashboard() {
 
                     <div className="p-6 text-center">
 
-                        <div className="text-2xl tracking-wide">
-                            🇹🇿 🇰🇪 🇺🇬 🇷🇼 🇪🇹 🇸🇴
-                        </div>
 
                         <h3 className="mt-4 text-lg font-bold">
-                            One Community. Many Cultures.
+                            With SEA, Hakuna Matata.
                         </h3>
 
                         <p className="mt-2 text-sm leading-6 text-gray-400">
