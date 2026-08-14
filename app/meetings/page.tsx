@@ -152,10 +152,16 @@ export default async function MeetingsPage() {
 
                                         {meeting.meeting_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {meeting.meeting_time}
+                                                {new Date(`1970-01-01T${meeting.meeting_time}`).toLocaleTimeString(
+                                                    "en-US",
+                                                    {
+                                                        hour: "numeric",
+                                                        minute: "2-digit",
+                                                        hour12: true,
+                                                    }
+                                                )}
                                             </p>
                                         )}
-
                                     </div>
 
                                 </div>

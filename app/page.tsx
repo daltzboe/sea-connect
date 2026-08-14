@@ -102,7 +102,8 @@ export default function Home() {
             </div>
             <div className="mt-3 flex justify-center gap-2 text-sm">
 
-              founded by Dalton Opudo @2026
+
+              <span>developed by Dalton Opudo @2026</span>
             </div>
 
           </footer>

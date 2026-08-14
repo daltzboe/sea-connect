@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import LogoutButton from "@/components/LogoutButton";
 import { getCurrentProfile } from "@/lib/profile";
+import NotificationBell from "@/components/NotificationBell";
 
 export default async function Dashboard() {
     const { user, profile } = await getCurrentProfile();
@@ -53,6 +54,21 @@ export default async function Dashboard() {
         .order("meeting_date", { ascending: true })
         .limit(1)
         .maybeSingle();
+    function formatTime(time: string) {
+        const [hours, minutes] = time.split(":");
+        const hour = Number(hours);
+
+        const period = hour >= 12 ? "PM" : "AM";
+
+        const displayHour =
+            hour === 0
+                ? 12
+                : hour > 12
+                    ? hour - 12
+                    : hour;
+
+        return `${displayHour}:${minutes} ${period}`;
+    }
 
     return (
         <main className="min-h-screen bg-[#F4F6F5] pb-24 text-[#0C2340]">
@@ -115,6 +131,16 @@ export default async function Dashboard() {
 
                         <div className="flex flex-col items-end gap-2">
 
+                            <div className="flex items-center gap-2">
+
+                                <NotificationBell />
+
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#0C2340] text-lg font-bold">
+                                    {firstName.charAt(0).toUpperCase()}
+                                </div>
+
+                            </div>
+
                             {profile?.role === "officer" && (
                                 <Link
                                     href="/admin"
@@ -123,10 +149,6 @@ export default async function Dashboard() {
                                     Admin
                                 </Link>
                             )}
-
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#0C2340] text-lg font-bold">
-                                {firstName.charAt(0).toUpperCase()}
-                            </div>
 
                         </div>
 
@@ -358,7 +380,7 @@ export default async function Dashboard() {
 
                                         {upcomingEvent.event_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {upcomingEvent.event_time}
+                                                {formatTime(upcomingEvent.event_time)}
                                             </p>
                                         )}
 
@@ -478,7 +500,7 @@ export default async function Dashboard() {
 
                                         {upcomingMeeting.meeting_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {upcomingMeeting.meeting_time}
+                                                {formatTime(upcomingMeeting.meeting_time)}
                                             </p>
                                         )}
 

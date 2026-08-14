@@ -18,6 +18,22 @@ export default async function EventsPage() {
         .from("events")
         .select("*")
         .order("event_date", { ascending: true });
+    function formatTime(time: string) {
+        const [hours, minutes] = time.split(":");
+
+        const hour = Number(hours);
+
+        const period = hour >= 12 ? "PM" : "AM";
+
+        const displayHour =
+            hour === 0
+                ? 12
+                : hour > 12
+                    ? hour - 12
+                    : hour;
+
+        return `${displayHour}:${minutes} ${period}`;
+    }
 
     return (
         <main className="min-h-screen bg-gray-100 pb-24 text-[#0C2340]">
@@ -154,7 +170,7 @@ export default async function EventsPage() {
 
                                         {event.event_time && (
                                             <p className="text-sm text-gray-500">
-                                                {event.event_time}
+                                                {formatTime(event.event_time)}
                                             </p>
                                         )}
 
