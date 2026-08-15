@@ -28,8 +28,8 @@ export default function Home() {
           {/* Flags */}
           <div className="mt-7 flex flex-wrap gap-2 text-xl">
             <span>🇪🇹</span>
-            <span>🇨🇬</span>
-            <span>🇪🇹</span>
+            <span>🇸🇴</span>
+            <span>🇨🇩</span>
           </div>
 
           {/* Accent */}

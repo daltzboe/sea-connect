@@ -5,6 +5,8 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import LogoutButton from "@/components/LogoutButton";
 import { getCurrentProfile } from "@/lib/profile";
 import NotificationBell from "@/components/NotificationBell";
+import EnableNotifications from "@/components/EnableNotifications";
+import TestPushButton from "@/components/TestPushButton";
 
 export default async function Dashboard() {
     const { user, profile } = await getCurrentProfile();
@@ -22,7 +24,7 @@ export default async function Dashboard() {
 
     const supabase = await createSupabaseServerClient();
 
-    // Get the next upcoming event
+    // Upcoming event
     const { data: upcomingEvent } = await supabase
         .from("events")
         .select("*")
@@ -35,7 +37,7 @@ export default async function Dashboard() {
         .limit(1)
         .maybeSingle();
 
-    // Get latest announcement
+    // Latest announcement
     const { data: latestAnnouncement } = await supabase
         .from("announcements")
         .select("*")
@@ -43,7 +45,7 @@ export default async function Dashboard() {
         .limit(1)
         .maybeSingle();
 
-    // Get upcoming meeting
+    // Upcoming meeting
     const { data: upcomingMeeting } = await supabase
         .from("meetings")
         .select("*")
@@ -52,10 +54,16 @@ export default async function Dashboard() {
             new Date().toISOString().split("T")[0]
         )
         .order("meeting_date", { ascending: true })
+        .order("meeting_time", { ascending: true })
         .limit(1)
         .maybeSingle();
+
+    // Convert 24-hour time to 12-hour AM/PM
     function formatTime(time: string) {
+        if (!time) return "";
+
         const [hours, minutes] = time.split(":");
+
         const hour = Number(hours);
 
         const period = hour >= 12 ? "PM" : "AM";
@@ -76,7 +84,6 @@ export default async function Dashboard() {
             {/* HERO HEADER */}
             <header className="relative overflow-hidden bg-[#071522] text-white">
 
-                {/* Decorative colors */}
                 <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-[#16803A] via-[#F4C430] to-[#F15A24]" />
 
                 <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#16803A] opacity-20 blur-3xl" />
@@ -165,8 +172,16 @@ export default async function Dashboard() {
 
             <div className="mx-auto max-w-md px-5 py-6">
 
+                {/* PUSH NOTIFICATIONS */}
+                <div className="space-y-3">
+
+                    <EnableNotifications />
+
+
+                </div>
+
                 {/* EAST AFRICA STRIP */}
-                <div className="mb-7 overflow-hidden rounded-2xl bg-[#0C2340] shadow-sm">
+                <div className="mb-7 mt-6 overflow-hidden rounded-2xl bg-[#0C2340] shadow-sm">
 
                     <div className="flex h-1">
                         <div className="flex-1 bg-[#16803A]" />
@@ -328,6 +343,7 @@ export default async function Dashboard() {
                     </div>
 
                     {upcomingEvent ? (
+
                         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
 
                             <div className="relative bg-[#0C2340] px-5 py-5 text-white">
@@ -380,7 +396,9 @@ export default async function Dashboard() {
 
                                         {upcomingEvent.event_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(upcomingEvent.event_time)}
+                                                {formatTime(
+                                                    upcomingEvent.event_time
+                                                )}
                                             </p>
                                         )}
 
@@ -414,7 +432,9 @@ export default async function Dashboard() {
                             </div>
 
                         </div>
+
                     ) : (
+
                         <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
 
                             <div className="text-3xl">
@@ -430,6 +450,7 @@ export default async function Dashboard() {
                             </p>
 
                         </div>
+
                     )}
 
                 </section>
@@ -453,6 +474,7 @@ export default async function Dashboard() {
                     </div>
 
                     {upcomingMeeting ? (
+
                         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
 
                             <div className="relative bg-[#16803A] px-5 py-5 text-white">
@@ -500,7 +522,9 @@ export default async function Dashboard() {
 
                                         {upcomingMeeting.meeting_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(upcomingMeeting.meeting_time)}
+                                                {formatTime(
+                                                    upcomingMeeting.meeting_time
+                                                )}
                                             </p>
                                         )}
 
@@ -532,7 +556,9 @@ export default async function Dashboard() {
                             </div>
 
                         </div>
+
                     ) : (
+
                         <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
 
                             <div className="text-3xl">
@@ -548,6 +574,7 @@ export default async function Dashboard() {
                             </p>
 
                         </div>
+
                     )}
 
                 </section>
@@ -571,6 +598,7 @@ export default async function Dashboard() {
                     </div>
 
                     {latestAnnouncement ? (
+
                         <Link
                             href="/announcements"
                             className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
@@ -609,7 +637,9 @@ export default async function Dashboard() {
                             </div>
 
                         </Link>
+
                     ) : (
+
                         <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
 
                             <div className="text-3xl">
@@ -625,6 +655,7 @@ export default async function Dashboard() {
                             </p>
 
                         </div>
+
                     )}
 
                 </section>
@@ -639,7 +670,6 @@ export default async function Dashboard() {
                     </div>
 
                     <div className="p-6 text-center">
-
 
                         <h3 className="mt-4 text-lg font-bold">
                             With SEA, Hakuna Matata.
