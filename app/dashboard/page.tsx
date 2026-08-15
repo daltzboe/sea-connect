@@ -99,7 +99,7 @@ export default async function Dashboard() {
                         </div>
 
                         <div className="flex gap-1 text-lg">
-                            🇹🇿 🇰🇪 🇺🇬
+                            🇪🇹 🇰🇪 🇺🇬
                         </div>
 
                     </div>
@@ -333,7 +333,7 @@ export default async function Dashboard() {
                             <div className="relative bg-[#0C2340] px-5 py-5 text-white">
 
                                 <div className="absolute right-5 top-4 text-xl">
-                                    🇹🇿
+                                    🇸🇴
                                 </div>
 
                                 <p className="text-xs font-semibold uppercase tracking-wider text-[#F4C430]">

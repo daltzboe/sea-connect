@@ -75,6 +75,33 @@ export default function EditEventPage() {
         router.refresh();
     }
 
+    async function handleDelete() {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this event? This cannot be undone."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+
+        const { error } = await supabase
+            .from("events")
+            .delete()
+            .eq("id", params.id);
+
+        if (error) {
+            setError(error.message);
+            setSaving(false);
+            return;
+        }
+
+        router.push("/admin/events");
+        router.refresh();
+    }
+
     if (loading) {
         return (
             <main className="flex min-h-screen items-center justify-center bg-gray-100 text-[#0C2340]">
@@ -86,12 +113,13 @@ export default function EditEventPage() {
     return (
         <main className="min-h-screen bg-gray-100 text-[#0C2340]">
 
+            {/* Header */}
             <header className="bg-[#0C2340] px-5 pb-7 pt-8 text-white">
                 <div className="mx-auto max-w-md">
 
                     <button
                         onClick={() => router.back()}
-                        className="text-sm text-gray-300 hover:text-white"
+                        className="text-sm text-gray-300 transition hover:text-white"
                     >
                         ← Back
                     </button>
@@ -114,6 +142,7 @@ export default function EditEventPage() {
                     className="space-y-5"
                 >
 
+                    {/* Event Title */}
                     <div className="rounded-2xl bg-white p-5 shadow-sm">
 
                         <label className="text-sm font-semibold">
@@ -132,6 +161,7 @@ export default function EditEventPage() {
 
                     </div>
 
+                    {/* Description */}
                     <div className="rounded-2xl bg-white p-5 shadow-sm">
 
                         <label className="text-sm font-semibold">
@@ -149,6 +179,7 @@ export default function EditEventPage() {
 
                     </div>
 
+                    {/* Date */}
                     <div className="rounded-2xl bg-white p-5 shadow-sm">
 
                         <label className="text-sm font-semibold">
@@ -167,6 +198,7 @@ export default function EditEventPage() {
 
                     </div>
 
+                    {/* Time */}
                     <div className="rounded-2xl bg-white p-5 shadow-sm">
 
                         <label className="text-sm font-semibold">
@@ -185,6 +217,7 @@ export default function EditEventPage() {
 
                     </div>
 
+                    {/* Location */}
                     <div className="rounded-2xl bg-white p-5 shadow-sm">
 
                         <label className="text-sm font-semibold">
@@ -203,18 +236,34 @@ export default function EditEventPage() {
 
                     </div>
 
+                    {/* Error */}
                     {error && (
                         <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
                             {error}
                         </div>
                     )}
 
+                    {/* Save */}
                     <button
                         type="submit"
                         disabled={saving}
                         className="w-full rounded-xl bg-[#F15A24] px-4 py-4 font-bold text-white transition hover:opacity-90 disabled:opacity-50"
                     >
-                        {saving ? "Saving Changes..." : "Save Changes"}
+                        {saving
+                            ? "Saving..."
+                            : "Save Changes"}
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={saving}
+                        className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-4 font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                    >
+                        {saving
+                            ? "Processing..."
+                            : "Delete Event"}
                     </button>
 
                 </form>

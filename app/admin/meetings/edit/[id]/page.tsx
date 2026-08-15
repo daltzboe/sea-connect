@@ -83,6 +83,33 @@ export default function EditMeetingPage() {
         );
     }
 
+    async function handleDelete() {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this meeting? This cannot be undone."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+
+        const { error } = await supabase
+            .from("meetings")
+            .delete()
+            .eq("id", params.id);
+
+        if (error) {
+            setError(error.message);
+            setSaving(false);
+            return;
+        }
+
+        router.push("/admin/meetings");
+        router.refresh();
+    }
+
     return (
         <main className="min-h-screen bg-gray-100 text-[#0C2340]">
 

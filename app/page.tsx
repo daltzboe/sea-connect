@@ -98,7 +98,13 @@ export default function Home() {
               <span>🇺🇬</span>
               <span>🇪🇹</span>
               <span>🇸🇴</span>
+              <span>🇸🇸</span>
+              <span>🇪🇷</span>
+              <span>🇳🇬</span>
+              <span>🇨🇬</span>
+              <span>🇧🇮</span>
               <span>🇷🇼</span>
+
             </div>
             <div className="mt-3 flex justify-center gap-2 text-sm">
 
