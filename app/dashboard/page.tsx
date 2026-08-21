@@ -6,7 +6,6 @@ import LogoutButton from "@/components/LogoutButton";
 import { getCurrentProfile } from "@/lib/profile";
 import NotificationBell from "@/components/NotificationBell";
 import EnableNotifications from "@/components/EnableNotifications";
-import TestPushButton from "@/components/TestPushButton";
 
 export default async function Dashboard() {
     const { user, profile } = await getCurrentProfile();

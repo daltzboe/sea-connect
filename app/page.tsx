@@ -1,6 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // If the user is already logged in,
+  // take them directly to the dashboard.
+  if (user) {
+    redirect("/dashboard");
+  }
+
   return (
       <main className="min-h-screen bg-[#071522] text-white">
 
@@ -27,8 +41,15 @@ export default function Home() {
 
           {/* Flags */}
           <div className="mt-7 flex flex-wrap gap-2 text-xl">
+            <span>🇹🇿</span>
+            <span>🇰🇪</span>
+            <span>🇺🇬</span>
             <span>🇪🇹</span>
             <span>🇸🇴</span>
+            <span>🇸🇸</span>
+            <span>🇪🇷</span>
+            <span>🇷🇼</span>
+            <span>🇧🇮</span>
             <span>🇨🇩</span>
           </div>
 
@@ -48,8 +69,8 @@ export default function Home() {
               Belong.
               <br />
               <span className="text-[#16803A]">
-                            Grow.
-                        </span>
+              Grow.
+            </span>
             </h2>
 
             <p className="mt-6 text-lg leading-7 text-gray-300">
@@ -86,7 +107,7 @@ export default function Home() {
               Students of East Africa • UTSA
             </p>
 
-            <div className="mt-3 flex justify-center gap-2 text-sm">
+            <div className="mt-3 flex flex-wrap justify-center gap-2 text-sm">
               <span>🇹🇿</span>
               <span>🇰🇪</span>
               <span>🇺🇬</span>
@@ -98,13 +119,12 @@ export default function Home() {
               <span>🇨🇬</span>
               <span>🇧🇮</span>
               <span>🇷🇼</span>
-
+              <span>🇨🇩</span>
             </div>
-            <div className="mt-3 flex justify-center gap-2 text-sm">
 
-
-              <span>developed by Dalton Opudo @2026</span>
-            </div>
+            <p className="mt-3">
+              Developed by Dalton Opudo • 2026
+            </p>
 
           </footer>
 

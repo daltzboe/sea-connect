@@ -3,76 +3,88 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navigation = [
-    {
-        label: "Home",
-        href: "/dashboard",
-        icon: "⌂",
-    },
-    {
-        label: "Events",
-        href: "/events",
-        icon: "📅",
-    },
-    {
-        label: "Meetings",
-        href: "/meetings",
-        icon: "🤝",
-    },
-    {
-        label: "Profile",
-        href: "/profile",
-        icon: "◉",
-    },
-];
-
 export default function BottomNav() {
     const pathname = usePathname();
 
+    const items = [
+        {
+            href: "/dashboard",
+            label: "Home",
+            icon: "⌂",
+        },
+        {
+            href: "/events",
+            label: "Events",
+            icon: "📅",
+        },
+        {
+            href: "/announcements",
+            label: "News",
+            icon: "📢",
+        },
+        {
+            href: "/members",
+            label: "Members",
+            icon: "👥",
+        },
+        {
+            href: "/profile",
+            label: "Profile",
+            icon: "👤",
+        },
+    ];
+
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-md">
 
-            <div className="mx-auto flex max-w-md items-center justify-between rounded-full border border-gray-200 bg-white/95 p-2 shadow-[0_8px_30px_rgba(0,0,0,0.15)] backdrop-blur">
+            <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
 
-                {navigation.map((item) => {
-                    const active =
+                {items.map((item) => {
+
+                    const isActive =
                         pathname === item.href ||
-                        pathname.startsWith(`${item.href}/`);
+                        (item.href !== "/dashboard" &&
+                            pathname.startsWith(item.href));
 
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex min-w-0 flex-1 items-center justify-center rounded-full px-3 py-3 transition-all duration-200 ${
-                                active
-                                    ? "bg-[#0C2340] text-white shadow-sm"
-                                    : "text-gray-500 hover:bg-gray-100 hover:text-[#0C2340]"
+                            className={`flex min-w-[64px] flex-col items-center rounded-xl px-3 py-2 transition ${
+                                isActive
+                                    ? "bg-[#16803A]/10 text-[#16803A]"
+                                    : "text-gray-400 hover:text-[#0C2340]"
                             }`}
                         >
 
-                            <div className="flex items-center gap-2">
+                            <span
+                                className={`text-xl leading-none transition ${
+                                    isActive
+                                        ? "scale-110"
+                                        : ""
+                                }`}
+                            >
+                                {item.icon}
+                            </span>
 
-                                <span className="text-base">
-                                    {item.icon}
-                                </span>
-
-                                <span
-                                    className={`text-xs font-semibold ${
-                                        active
-                                            ? "block"
-                                            : "hidden sm:block"
-                                    }`}
-                                >
-                                    {item.label}
-                                </span>
-
-                            </div>
+                            <span
+                                className={`mt-1 text-[10px] font-semibold ${
+                                    isActive
+                                        ? "text-[#16803A]"
+                                        : "text-gray-400"
+                                }`}
+                            >
+                                {item.label}
+                            </span>
 
                         </Link>
                     );
                 })}
 
             </div>
+
+            {/* SAFE AREA FOR PHONES */}
+            <div className="h-[env(safe-area-inset-bottom)]" />
 
         </nav>
     );
