@@ -21,14 +21,17 @@ export default async function ProfilePage() {
         user.user_metadata?.country ||
         "Not specified";
 
-    const firstName = fullName.split(" ")[0];
-
     const initials = fullName
         .split(" ")
+        .filter(Boolean)
         .map((name: string) => name.charAt(0))
         .slice(0, 2)
         .join("")
         .toUpperCase();
+
+    const role = profile?.role || "member";
+
+    const isOfficer = role.toLowerCase() === "officer";
 
     return (
         <main className="min-h-screen bg-[#F4F6F5] pb-24 text-[#0C2340]">
@@ -36,32 +39,56 @@ export default async function ProfilePage() {
             {/* HEADER */}
             <header className="relative overflow-hidden bg-[#071522] text-white">
 
+                {/* SEA Accent */}
                 <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-[#16803A] via-[#F4C430] to-[#F15A24]" />
 
+                {/* Background Glow */}
                 <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#16803A] opacity-20 blur-3xl" />
+
+                <div className="absolute -left-20 bottom-0 h-40 w-40 rounded-full bg-[#F15A24] opacity-10 blur-3xl" />
 
                 <div className="relative mx-auto max-w-md px-5 pb-10 pt-8">
 
                     <Link
                         href="/dashboard"
-                        className="text-sm font-semibold text-gray-300 transition hover:text-white"
+                        className="inline-flex items-center text-sm font-semibold text-gray-300 transition hover:text-white"
                     >
                         ← Dashboard
                     </Link>
 
+                    {/* Profile Identity */}
                     <div className="mt-8 text-center">
 
-                        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#F4C430] bg-[#0C2340] text-2xl font-bold">
-                            {initials}
+                        <div className="relative mx-auto w-fit">
+
+                            <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#F4C430] bg-[#0C2340] text-2xl font-bold shadow-lg">
+                                {initials || "SEA"}
+                            </div>
+
+                            {/* Online Indicator */}
+                            <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-4 border-[#071522] bg-[#16803A]" />
+
                         </div>
 
                         <h1 className="mt-4 text-2xl font-bold">
                             {fullName}
                         </h1>
 
-                        <p className="mt-1 text-sm text-gray-400">
-                            SEAConnect Member
-                        </p>
+                        <div className="mt-2 flex justify-center">
+
+                            <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                    isOfficer
+                                        ? "bg-[#F4C430]/15 text-[#F4C430]"
+                                        : "bg-[#16803A]/15 text-[#5FCF83]"
+                                }`}
+                            >
+                                {isOfficer
+                                    ? "SEA Officer"
+                                    : "SEA Member"}
+                            </span>
+
+                        </div>
 
                     </div>
 
@@ -77,9 +104,15 @@ export default async function ProfilePage() {
 
                     <div className="mb-4 flex items-center justify-between">
 
-                        <h2 className="text-lg font-bold">
-                            Account Information
-                        </h2>
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                Your Account
+                            </p>
+
+                            <h2 className="mt-1 text-lg font-bold">
+                                Account Information
+                            </h2>
+                        </div>
 
                         <div className="h-1 w-10 rounded-full bg-[#16803A]" />
 
@@ -90,7 +123,7 @@ export default async function ProfilePage() {
                         {/* Name */}
                         <div className="flex items-center gap-4 border-b border-gray-100 p-5">
 
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl">
                                 👤
                             </div>
 
@@ -100,7 +133,7 @@ export default async function ProfilePage() {
                                     Full Name
                                 </p>
 
-                                <p className="mt-1 font-semibold">
+                                <p className="mt-1 truncate font-semibold">
                                     {fullName}
                                 </p>
 
@@ -111,7 +144,7 @@ export default async function ProfilePage() {
                         {/* Email */}
                         <div className="flex items-center gap-4 border-b border-gray-100 p-5">
 
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-xl">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-xl">
                                 ✉️
                             </div>
 
@@ -132,11 +165,11 @@ export default async function ProfilePage() {
                         {/* Country */}
                         <div className="flex items-center gap-4 border-b border-gray-100 p-5">
 
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-50 text-xl">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-xl">
                                 🌍
                             </div>
 
-                            <div>
+                            <div className="min-w-0">
 
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
                                     Country
@@ -153,18 +186,18 @@ export default async function ProfilePage() {
                         {/* Role */}
                         <div className="flex items-center gap-4 p-5">
 
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-xl">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-xl">
                                 ⭐
                             </div>
 
-                            <div>
+                            <div className="min-w-0">
 
                                 <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                                    Role
+                                    Account Role
                                 </p>
 
                                 <p className="mt-1 font-semibold capitalize">
-                                    {profile?.role || "Member"}
+                                    {role}
                                 </p>
 
                             </div>
@@ -180,7 +213,11 @@ export default async function ProfilePage() {
 
                     <div className="mb-4">
 
-                        <h2 className="text-lg font-bold">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                            Settings
+                        </p>
+
+                        <h2 className="mt-1 text-lg font-bold">
                             Account
                         </h2>
 
@@ -188,14 +225,15 @@ export default async function ProfilePage() {
 
                     <div className="space-y-3">
 
+                        {/* Edit Profile */}
                         <Link
                             href="/profile/edit"
-                            className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                            className="group flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
 
                             <div className="flex items-center gap-4">
 
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl">
                                     ✏️
                                 </div>
 
@@ -206,27 +244,28 @@ export default async function ProfilePage() {
                                     </p>
 
                                     <p className="mt-1 text-sm text-gray-500">
-                                        Update your information
+                                        Update your name and country
                                     </p>
 
                                 </div>
 
                             </div>
 
-                            <span className="text-xl text-gray-400">
+                            <span className="text-xl text-gray-400 transition group-hover:translate-x-1 group-hover:text-[#16803A]">
                                 →
                             </span>
 
                         </Link>
 
+                        {/* Notifications */}
                         <Link
                             href="/notifications"
-                            className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                            className="group flex items-center justify-between rounded-2xl bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
 
                             <div className="flex items-center gap-4">
 
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-50 text-xl">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-xl">
                                     🔔
                                 </div>
 
@@ -237,14 +276,14 @@ export default async function ProfilePage() {
                                     </p>
 
                                     <p className="mt-1 text-sm text-gray-500">
-                                        Manage your notifications
+                                        Manage your notification settings
                                     </p>
 
                                 </div>
 
                             </div>
 
-                            <span className="text-xl text-gray-400">
+                            <span className="text-xl text-gray-400 transition group-hover:translate-x-1 group-hover:text-[#16803A]">
                                 →
                             </span>
 
@@ -257,21 +296,36 @@ export default async function ProfilePage() {
                 {/* SIGN OUT */}
                 <section className="mt-8">
 
-                    <div className="rounded-2xl bg-white p-5 shadow-sm">
+                    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
 
-                        <div className="mb-4">
+                        <div className="p-5">
 
-                            <p className="font-bold">
-                                Sign out
-                            </p>
+                            <div className="flex items-start gap-4">
 
-                            <p className="mt-1 text-sm text-gray-500">
-                                You'll need to sign in again to access SEAConnect.
-                            </p>
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-xl">
+                                    🚪
+                                </div>
+
+                                <div>
+
+                                    <p className="font-bold">
+                                        Sign out
+                                    </p>
+
+                                    <p className="mt-1 text-sm leading-5 text-gray-500">
+                                        Sign out of your SEAConnect
+                                        account on this device.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div className="mt-5">
+                                <LogoutButton />
+                            </div>
 
                         </div>
-
-                        <LogoutButton />
 
                     </div>
 
@@ -280,7 +334,11 @@ export default async function ProfilePage() {
                 {/* FOOTER */}
                 <div className="mt-8 text-center">
 
-                    <p className="text-xs text-gray-400">
+                    <div className="flex justify-center gap-2 text-lg">
+                        🇹🇿 🇰🇪 🇺🇬 🇪🇹 🇸🇴 🇷🇼
+                    </div>
+
+                    <p className="mt-3 text-xs font-semibold text-gray-400">
                         SEAConnect
                     </p>
 

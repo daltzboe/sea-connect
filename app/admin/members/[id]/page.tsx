@@ -268,6 +268,29 @@ export default function ManageMemberPage() {
 
                     </div>
 
+                    {/* Bio */}
+                    <div className="mt-5">
+
+                        <label
+                            htmlFor="bio"
+                            className="text-sm font-semibold"
+                        >
+                            Bio <span className="font-normal text-gray-400">(optional)</span>
+                        </label>
+
+                        <textarea
+                            id="bio"
+                            value={bio}
+                            onChange={(event) =>
+                                setBio(event.target.value)
+                            }
+                            rows={5}
+                            placeholder="Tell us a little about this member..."
+                            className="mt-2 w-full resize-none rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-[#F15A24]"
+                        />
+
+                    </div>
+
 
                     {/* Error */}
                     {error && (
@@ -295,6 +318,7 @@ export default function ManageMemberPage() {
                     </button>
 
                 </form>
+
 
                 {/* Remove */}
                 <section className="mt-5 rounded-2xl bg-white p-6 shadow-sm">

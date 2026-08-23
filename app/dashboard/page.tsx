@@ -23,39 +23,38 @@ export default async function Dashboard() {
 
     const supabase = await createSupabaseServerClient();
 
-    // Upcoming event
-    const { data: upcomingEvent } = await supabase
-        .from("events")
-        .select("*")
-        .gte(
-            "event_date",
-            new Date().toISOString().split("T")[0]
-        )
-        .order("event_date", { ascending: true })
-        .order("event_time", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+    const today = new Date().toISOString().split("T")[0];
 
-    // Latest announcement
-    const { data: latestAnnouncement } = await supabase
-        .from("announcements")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+    const [
+        { data: upcomingEvent },
+        { data: latestAnnouncement },
+        { data: upcomingMeeting },
+    ] = await Promise.all([
+        supabase
+            .from("events")
+            .select("*")
+            .gte("event_date", today)
+            .order("event_date", { ascending: true })
+            .order("event_time", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
 
-    // Upcoming meeting
-    const { data: upcomingMeeting } = await supabase
-        .from("meetings")
-        .select("*")
-        .gte(
-            "meeting_date",
-            new Date().toISOString().split("T")[0]
-        )
-        .order("meeting_date", { ascending: true })
-        .order("meeting_time", { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        supabase
+            .from("announcements")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+
+        supabase
+            .from("meetings")
+            .select("*")
+            .gte("meeting_date", today)
+            .order("meeting_date", { ascending: true })
+            .order("meeting_time", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+    ]);
 
     // Convert 24-hour time to 12-hour AM/PM
     function formatTime(time: string) {
@@ -226,6 +225,7 @@ export default async function Dashboard() {
                         {/* Events */}
                         <Link
                             href="/events"
+                            prefetch={true}
                             className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#F15A24]" />
@@ -250,6 +250,7 @@ export default async function Dashboard() {
                         {/* Announcements */}
                         <Link
                             href="/announcements"
+                            prefetch={true}
                             className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#F4C430]" />
@@ -274,6 +275,7 @@ export default async function Dashboard() {
                         {/* Meetings */}
                         <Link
                             href="/meetings"
+                            prefetch={true}
                             className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#0C2340]" />
@@ -298,6 +300,7 @@ export default async function Dashboard() {
                         {/* Members */}
                         <Link
                             href="/members"
+                            prefetch={true}
                             className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#16803A]" />

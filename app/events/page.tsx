@@ -1,26 +1,30 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getCurrentProfile } from "@/lib/profile";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 
 export default async function EventsPage() {
-    const supabase = await createSupabaseServerClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getCurrentProfile();
 
     if (!user) {
         redirect("/signin");
     }
 
+    const supabase = await createSupabaseServerClient();
+
     const { data: events, error } = await supabase
         .from("events")
-        .select("*")
-        .order("event_date", { ascending: true });
-    function formatTime(time: string) {
-        const [hours, minutes] = time.split(":");
+        .select(
+            "id, title, description, event_date, event_time, location"
+        )
+        .order("event_date", { ascending: true })
+        .order("event_time", { ascending: true });
 
+    function formatTime(time: string) {
+        if (!time) return "";
+
+        const [hours, minutes] = time.split(":");
         const hour = Number(hours);
 
         const period = hour >= 12 ? "PM" : "AM";
@@ -49,6 +53,7 @@ export default async function EventsPage() {
 
                     <Link
                         href="/dashboard"
+                        prefetch={true}
                         className="inline-flex items-center text-sm text-gray-300 hover:text-white"
                     >
                         ← Back to Home
@@ -122,7 +127,9 @@ export default async function EventsPage() {
                             <div className="bg-[#F15A24] px-5 py-4 text-white">
 
                                 <p className="text-xs font-semibold uppercase tracking-wide">
-                                    {new Date(event.event_date).toLocaleDateString(
+                                    {new Date(
+                                        event.event_date
+                                    ).toLocaleDateString(
                                         "en-US",
                                         {
                                             month: "long",
@@ -170,7 +177,9 @@ export default async function EventsPage() {
 
                                         {event.event_time && (
                                             <p className="text-sm text-gray-500">
-                                                {formatTime(event.event_time)}
+                                                {formatTime(
+                                                    event.event_time
+                                                )}
                                             </p>
                                         )}
 
@@ -186,11 +195,9 @@ export default async function EventsPage() {
                                         </span>
 
                                         <div>
-
                                             <p className="font-medium">
                                                 {event.location}
                                             </p>
-
                                         </div>
 
                                     </div>
