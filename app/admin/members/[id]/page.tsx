@@ -14,6 +14,7 @@ const countries = [
     "South Sudan",
     "Ethiopia",
     "Somalia",
+    "Somaliland",
     "Djibouti",
     "Eritrea",
     "Democratic Republic of the Congo",

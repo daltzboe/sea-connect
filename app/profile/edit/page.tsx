@@ -51,6 +51,7 @@ const AFRICAN_COUNTRIES = [
     "Seychelles",
     "Sierra Leone",
     "Somalia",
+    "Somaliland",
     "South Africa",
     "South Sudan",
     "Sudan",
@@ -58,6 +59,7 @@ const AFRICAN_COUNTRIES = [
     "Togo",
     "Tunisia",
     "Uganda",
+    "United States of America",
     "Zambia",
     "Zimbabwe",
 ];

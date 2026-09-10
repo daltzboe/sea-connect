@@ -149,6 +149,7 @@ export default async function Dashboard() {
                             {profile?.role === "officer" && (
                                 <Link
                                     href="/admin"
+                                    prefetch={true}
                                     className="rounded-xl bg-[#F15A24] px-3 py-2 text-xs font-semibold text-white"
                                 >
                                     Admin
@@ -337,6 +338,7 @@ export default async function Dashboard() {
 
                         <Link
                             href="/events"
+                            prefetch={true}
                             className="text-sm font-bold text-[#F15A24]"
                         >
                             View all →
@@ -426,6 +428,7 @@ export default async function Dashboard() {
 
                                 <Link
                                     href="/events"
+                                    prefetch={true}
                                     className="mt-5 block w-full rounded-xl bg-[#F15A24] px-4 py-3 text-center font-bold text-white transition hover:opacity-90"
                                 >
                                     View Event
@@ -468,6 +471,7 @@ export default async function Dashboard() {
 
                         <Link
                             href="/meetings"
+                            prefetch={true}
                             className="text-sm font-bold text-[#16803A]"
                         >
                             View all →
@@ -550,6 +554,7 @@ export default async function Dashboard() {
 
                                 <Link
                                     href="/meetings"
+                                    prefetch={true}
                                     className="mt-5 block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center font-bold text-white transition hover:opacity-90"
                                 >
                                     View Meeting
@@ -592,6 +597,7 @@ export default async function Dashboard() {
 
                         <Link
                             href="/announcements"
+                            prefetch={true}
                             className="text-sm font-bold text-[#F4C430]"
                         >
                             View all →
@@ -603,6 +609,7 @@ export default async function Dashboard() {
 
                         <Link
                             href="/announcements"
+                            prefetch={true}
                             className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
                         >
 

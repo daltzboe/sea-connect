@@ -30,6 +30,7 @@ export default async function AdminAnnouncementsPage() {
 
                     <Link
                         href="/admin"
+                        prefetch={true}
                         className="text-sm text-gray-300 hover:text-white"
                     >
                         ← Back to Admin
@@ -50,6 +51,7 @@ export default async function AdminAnnouncementsPage() {
 
                 <Link
                     href="/admin/announcements/create"
+                    prefetch={true}
                     className="block rounded-2xl bg-[#F15A24] px-5 py-4 text-center font-bold text-white shadow-sm"
                 >
                     + Create Announcement
@@ -87,6 +89,7 @@ export default async function AdminAnnouncementsPage() {
 
                                 <Link
                                     href={`/admin/announcements/edit/${announcement.id}`}
+                                    prefetch={true}
                                     className="flex-1 rounded-xl bg-[#0C2340] px-4 py-3 text-center text-sm font-semibold text-white"
                                 >
                                     Edit

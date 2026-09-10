@@ -33,6 +33,7 @@ export default async function AdminUsersPage() {
 
                     <Link
                         href="/admin"
+                        prefetch={true}
                         className="text-sm text-gray-300 hover:text-white"
                     >
                         ← Back to Admin
@@ -189,6 +190,7 @@ export default async function AdminUsersPage() {
 
                                 <Link
                                     href={`/admin/users/${managedUser.id}`}
+                                    prefetch={true}
                                     className="mt-5 block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center text-sm font-semibold text-white transition hover:opacity-90"
                                 >
                                     {isCurrentUser

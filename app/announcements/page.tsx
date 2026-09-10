@@ -32,6 +32,7 @@ export default async function AnnouncementsPage() {
 
                     <Link
                         href="/dashboard"
+                        prefetch={true}
                         className="inline-flex items-center text-sm text-gray-300 hover:text-white"
                     >
                         ← Back to Home

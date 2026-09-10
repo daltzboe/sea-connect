@@ -33,6 +33,7 @@ export default async function AdminMembersPage() {
 
                     <Link
                         href="/admin"
+                        prefetch={true}
                         className="text-sm text-gray-300 hover:text-white"
                     >
                         ← Back to Admin
@@ -59,6 +60,7 @@ export default async function AdminMembersPage() {
                 {/* Add Member */}
                 <Link
                     href="/admin/members/add"
+                    prefetch={true}
                     className="mb-6 flex w-full items-center justify-center rounded-xl bg-[#16803A] px-4 py-3 font-semibold text-white transition hover:opacity-90"
                 >
                     + Add Active Member
@@ -166,6 +168,7 @@ export default async function AdminMembersPage() {
 
                             <Link
                                 href={`/admin/members/${member.id}`}
+                                prefetch={true}
                                 className="mt-5 block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center text-sm font-semibold text-white"
                             >
                                 Manage Member
