@@ -168,7 +168,7 @@ export default function Home() {
           </p>
 
           <p className="mt-1 text-xs text-gray-600">
-            SEAConnect
+            developed by Dalton Opudo @2026
           </p>
         </footer>
       </div>
