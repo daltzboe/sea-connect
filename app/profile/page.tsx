@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import LogoutButton from "@/components/LogoutButton";
 import { getCurrentProfile } from "@/lib/profile";
+import EnableNotifications from "@/components/EnableNotifications";
 
 export default async function ProfilePage() {
     const { user, profile } = await getCurrentProfile();

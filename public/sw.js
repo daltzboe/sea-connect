@@ -5,7 +5,17 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-    event.waitUntil(self.clients.claim());
+    event.waitUntil(
+        caches.keys().then((cacheNames) =>
+            Promise.all(
+                cacheNames
+                    .filter((name) => name !== CACHE_NAME)
+                    .map((name) => caches.delete(name))
+            )
+        )
+    );
+
+    self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -14,9 +24,21 @@ self.addEventListener("fetch", (event) => {
     }
 
     event.respondWith(
-        fetch(event.request).catch(() => {
-            return caches.match(event.request);
-        })
+        fetch(event.request)
+            .then((response) => {
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+
+                return response;
+            })
+            .catch(() => {
+                return caches.match(event.request);
+            })
     );
 });
 
@@ -29,7 +51,16 @@ self.addEventListener("push", (event) => {
         return;
     }
 
-    const data = event.data.json();
+    let data;
+
+    try {
+        data = event.data.json();
+    } catch {
+        data = {
+            title: "SEAConnect",
+            body: event.data.text(),
+        };
+    }
 
     const title = data.title || "SEAConnect";
 
@@ -66,7 +97,6 @@ self.addEventListener("notificationclick", (event) => {
                 includeUncontrolled: true,
             })
             .then((clientList) => {
-
                 for (const client of clientList) {
                     if ("focus" in client) {
                         client.navigate(url);
@@ -74,9 +104,7 @@ self.addEventListener("notificationclick", (event) => {
                     }
                 }
 
-                if (self.clients.openWindow) {
-                    return self.clients.openWindow(url);
-                }
+                return self.clients.openWindow(url);
             })
     );
 });

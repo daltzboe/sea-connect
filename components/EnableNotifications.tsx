@@ -5,140 +5,103 @@ import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function EnableNotifications() {
     const [supported, setSupported] = useState(true);
-    const [enabled, setEnabled] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [permission, setPermission] =
+        useState<NotificationPermission>("default");
 
     useEffect(() => {
-        async function checkNotifications() {
-            try {
-                if (
-                    typeof window === "undefined" ||
-                    !("Notification" in window) ||
-                    !("serviceWorker" in navigator) ||
-                    !("PushManager" in window)
-                ) {
-                    setSupported(false);
-                    setLoading(false);
-                    return;
-                }
-
-                const supabase = createSupabaseBrowserClient();
-
-                const {
-                    data: { user },
-                } = await supabase.auth.getUser();
-
-                if (!user) {
-                    setLoading(false);
-                    return;
-                }
-
-                const registration =
-                    await navigator.serviceWorker.ready;
-
-                const subscription =
-                    await registration.pushManager.getSubscription();
-
-                if (subscription) {
-                    setEnabled(true);
-                    setLoading(false);
-                    return;
-                }
-
-                const { data, error: subscriptionError } =
-                    await supabase
-                        .from("push_subscriptions")
-                        .select("id")
-                        .eq("user_id", user.id)
-                        .limit(1);
-
-                if (subscriptionError) {
-                    console.error(
-                        "Could not check notification subscription:",
-                        subscriptionError.message
-                    );
-                }
-
-                if (data && data.length > 0) {
-                    setEnabled(true);
-                }
-            } catch (err) {
-                console.error(
-                    "Notification check failed:",
-                    err
-                );
-            } finally {
-                setLoading(false);
-            }
+        if (
+            !("Notification" in window) ||
+            !("serviceWorker" in navigator) ||
+            !("PushManager" in window)
+        ) {
+            setSupported(false);
+            return;
         }
 
-        checkNotifications();
+        setPermission(Notification.permission);
     }, []);
 
     async function enableNotifications() {
-        setError("");
-        setSaving(true);
+        if (!supported) {
+            return;
+        }
 
         try {
-            if (
-                !("Notification" in window) ||
-                !("serviceWorker" in navigator) ||
-                !("PushManager" in window)
-            ) {
-                setSupported(false);
-                return;
-            }
+            // Ask the user for notification permission
+            const result = await Notification.requestPermission();
 
-            const permission =
-                await Notification.requestPermission();
+            setPermission(result);
 
-            if (permission !== "granted") {
-                setError(
-                    "Notifications were not enabled. Please allow notifications in your browser settings."
+            if (result !== "granted") {
+                console.log(
+                    "Notification permission was not granted."
                 );
                 return;
             }
 
+            // Get the active service worker
             const registration =
                 await navigator.serviceWorker.ready;
 
-            const existingSubscription =
-                await registration.pushManager.getSubscription();
-
-            if (existingSubscription) {
-                setEnabled(true);
-                return;
-            }
-
-            const response = await fetch(
-                "/api/push/public-key"
+            console.log(
+                "Service worker ready:",
+                registration
             );
 
-            if (!response.ok) {
+            // Check for an existing subscription
+            let subscription =
+                await registration.pushManager.getSubscription();
+
+            // Create a subscription if one doesn't exist
+            if (!subscription) {
+                const vapidPublicKey =
+                    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+                if (!vapidPublicKey) {
+                    throw new Error(
+                        "VAPID public key is missing."
+                    );
+                }
+
+                subscription =
+                    await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: vapidPublicKey,
+                    });
+            }
+
+            console.log(
+                "SEAConnect Push Subscription:",
+                subscription
+            );
+
+            // Get the subscription information
+            const subscriptionJSON =
+                subscription.toJSON();
+
+            if (
+                !subscriptionJSON.endpoint ||
+                !subscriptionJSON.keys?.p256dh ||
+                !subscriptionJSON.keys?.auth
+            ) {
                 throw new Error(
-                    "Could not get notification settings."
+                    "Invalid push subscription."
                 );
             }
 
-            const { publicKey } =
-                await response.json();
-
-            const subscription =
-                await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(
-                        publicKey
-                    ),
-                });
-
+            // Create Supabase client
             const supabase =
                 createSupabaseBrowserClient();
 
+            // Get currently logged-in user
             const {
                 data: { user },
+                error: userError,
             } = await supabase.auth.getUser();
+
+            if (userError) {
+                throw userError;
+            }
 
             if (!user) {
                 throw new Error(
@@ -146,9 +109,7 @@ export default function EnableNotifications() {
                 );
             }
 
-            const subscriptionJSON =
-                subscription.toJSON();
-
+            // Save subscription to Supabase
             const { error: saveError } =
                 await supabase
                     .from("push_subscriptions")
@@ -156,125 +117,77 @@ export default function EnableNotifications() {
                         {
                             user_id: user.id,
                             endpoint:
-                            subscription.endpoint,
+                            subscriptionJSON.endpoint,
                             p256dh:
-                            subscriptionJSON.keys?.p256dh,
+                            subscriptionJSON.keys.p256dh,
                             auth:
-                            subscriptionJSON.keys?.auth,
+                            subscriptionJSON.keys.auth,
                         },
                         {
-                            onConflict: "endpoint",
+                            onConflict:
+                                "user_id,endpoint",
                         }
                     );
 
             if (saveError) {
-                throw new Error(
-                    saveError.message
-                );
+                throw saveError;
             }
 
-            setEnabled(true);
-        } catch (err) {
-            console.error(
-                "Notification setup failed:",
-                err
+            console.log(
+                "Push subscription saved to Supabase."
             );
 
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Could not enable notifications."
+            alert(
+                "SEAConnect notifications are enabled!"
             );
-        } finally {
-            setSaving(false);
+        } catch (error) {
+            console.error(
+                "Failed to enable notifications:",
+                error
+            );
+
+            alert(
+                "Unable to enable notifications. Check the browser console."
+            );
         }
     }
 
-    if (loading || !supported) {
-        return null;
+    if (!supported) {
+        return (
+            <p className="text-sm text-gray-500">
+                Push notifications are not supported on this device.
+            </p>
+        );
     }
 
-    if (enabled) {
+    if (permission === "granted") {
         return (
-            <div className="rounded-2xl border border-[#16803A]/20 bg-[#16803A]/10 p-5">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#16803A] text-xl">
-                        🔔
-                    </div>
+            <button
+                type="button"
+                disabled
+                className="rounded-lg bg-green-600 px-4 py-2 text-white"
+            >
+                Notifications Enabled ✓
+            </button>
+        );
+    }
 
-                    <div>
-                        <h3 className="font-bold text-[#0C2340]">
-                            Notifications Enabled
-                        </h3>
-
-                        <p className="mt-1 text-sm text-gray-600">
-                            You'll receive updates about
-                            events, meetings, and announcements.
-                        </p>
-                    </div>
-                </div>
-            </div>
+    if (permission === "denied") {
+        return (
+            <p className="text-sm text-red-500">
+                Notifications are blocked. Please enable them in
+                your browser settings.
+            </p>
         );
     }
 
     return (
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <div className="flex items-start gap-4">
-
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F4C430]/20 text-2xl">
-                    🔔
-                </div>
-
-                <div className="flex-1">
-                    <h3 className="font-bold text-[#0C2340]">
-                        Stay Updated
-                    </h3>
-
-                    <p className="mt-1 text-sm leading-5 text-gray-500">
-                        Allow SEAConnect to send you
-                        notifications about events, meetings,
-                        and announcements.
-                    </p>
-                </div>
-            </div>
-
-            {error && (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                    {error}
-                </div>
-            )}
-
-            <button
-                onClick={enableNotifications}
-                disabled={saving}
-                className="mt-4 w-full rounded-xl bg-[#16803A] px-4 py-3 font-bold text-white transition hover:bg-[#126B31] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-                {saving
-                    ? "Enabling Notifications..."
-                    : "🔔 Enable Notifications"}
-            </button>
-        </div>
-    );
-}
-
-function urlBase64ToUint8Array(
-    base64String: string
-) {
-    const padding =
-        "=".repeat(
-            (4 - (base64String.length % 4)) % 4
-        );
-
-    const base64 =
-        (base64String + padding)
-            .replace(/-/g, "+")
-            .replace(/_/g, "/");
-
-    const rawData = window.atob(base64);
-
-    return Uint8Array.from(
-        [...rawData].map((char) =>
-            char.charCodeAt(0)
-        )
+        <button
+            type="button"
+            onClick={enableNotifications}
+            className="rounded-lg bg-[#F15A24] px-4 py-2 font-medium text-white"
+        >
+            Enable Notifications
+        </button>
     );
 }

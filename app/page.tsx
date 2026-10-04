@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
+import EnableNotifications from "@/components/EnableNotifications";
 
 export default function Home() {
   const [checking, setChecking] = useState(true);
