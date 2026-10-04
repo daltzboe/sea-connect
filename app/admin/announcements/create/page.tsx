@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function CreateAnnouncementPage() {
     const router = useRouter();
-    const supabase = createSupabaseBrowserClient();
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
@@ -22,21 +20,46 @@ export default function CreateAnnouncementPage() {
         setLoading(true);
         setError("");
 
-        const { error } = await supabase
-            .from("announcements")
-            .insert({
-                title,
-                content,
-            });
+        try {
+            const response = await fetch(
+                "/api/announcements/create",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                    }),
+                }
+            );
 
-        if (error) {
-            setError(error.message);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to create announcement."
+                );
+            }
+
+            router.push("/admin/announcements");
+            router.refresh();
+        } catch (error) {
+            console.error(
+                "Failed to create announcement:",
+                error
+            );
+
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create announcement."
+            );
+
             setLoading(false);
-            return;
         }
-
-        router.push("/admin/announcements");
-        router.refresh();
     }
 
     return (

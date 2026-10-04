@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 export default function CreateMeetingPage() {
     const router = useRouter();
-    const supabase = createSupabaseBrowserClient();
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -25,24 +23,49 @@ export default function CreateMeetingPage() {
         setLoading(true);
         setError("");
 
-        const { error } = await supabase
-            .from("meetings")
-            .insert({
-                title,
-                description,
-                meeting_date: meetingDate,
-                meeting_time: meetingTime,
-                location,
-            });
+        try {
+            const response = await fetch(
+                "/api/meetings/create",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        meetingDate,
+                        meetingTime,
+                        location,
+                    }),
+                }
+            );
 
-        if (error) {
-            setError(error.message);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error ||
+                    "Failed to create meeting."
+                );
+            }
+
+            router.push("/admin/meetings");
+            router.refresh();
+        } catch (error) {
+            console.error(
+                "Failed to create meeting:",
+                error
+            );
+
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create meeting."
+            );
+
             setLoading(false);
-            return;
         }
-
-        router.push("/admin/meetings");
-        router.refresh();
     }
 
     return (
