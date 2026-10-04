@@ -2,13 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 
 export default function CreateEventPage() {
     const router = useRouter();
-    const supabase = createSupabaseBrowserClient();
-
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [eventDate, setEventDate] = useState("");
@@ -26,24 +23,48 @@ export default function CreateEventPage() {
         setLoading(true);
         setError("");
 
-        const { error } = await supabase
-            .from("events")
-            .insert({
-                title,
-                description,
-                event_date: eventDate,
-                event_time: eventTime,
-                location,
-            });
+        try {
+            const response = await fetch(
+                "/api/events/create",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        eventDate,
+                        eventTime,
+                        location,
+                    }),
+                }
+            );
 
-        if (error) {
-            setError(error.message);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || "Failed to create event."
+                );
+            }
+
+            router.push("/admin/events");
+            router.refresh();
+        } catch (error) {
+            console.error(
+                "Failed to create event:",
+                error
+            );
+
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create event."
+            );
+
             setLoading(false);
-            return;
         }
-
-        router.push("/admin/events");
-        router.refresh();
     }
 
     return (
