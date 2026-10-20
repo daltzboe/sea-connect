@@ -1,11 +1,12 @@
+
 import Link from "next/link";
-import BottomNav from "@/components/BottomNav";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import BottomNav from "@/components/BottomNav";
 import LogoutButton from "@/components/LogoutButton";
-import { getCurrentProfile } from "@/lib/profile";
 import NotificationBell from "@/components/NotificationBell";
 import EnableNotifications from "@/components/EnableNotifications";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function Dashboard() {
     const { user, profile } = await getCurrentProfile();
@@ -19,10 +20,9 @@ export default async function Dashboard() {
         user.user_metadata?.full_name ||
         "SEA Member";
 
-    const firstName = fullName.split(" ")[0];
+    const firstName = fullName.trim().split(/\s+/)[0] || "Member";
 
     const supabase = await createSupabaseServerClient();
-
     const today = new Date().toISOString().split("T")[0];
 
     const [
@@ -56,647 +56,579 @@ export default async function Dashboard() {
             .maybeSingle(),
     ]);
 
-    // Convert 24-hour time to 12-hour AM/PM
-    function formatTime(time: string) {
+    // Create a temporary URL for the private event image.
+    let upcomingEventImageUrl: string | null = null;
+
+    if (upcomingEvent?.image_url) {
+        const { data, error } = await supabase.storage
+            .from("event-images")
+            .createSignedUrl(upcomingEvent.image_url, 3600);
+
+        if (error) {
+            console.error("Could not load event image:", error.message);
+        }
+
+        upcomingEventImageUrl = data?.signedUrl ?? null;
+    }
+
+    function formatTime(time: string | null) {
         if (!time) return "";
 
         const [hours, minutes] = time.split(":");
-
         const hour = Number(hours);
-
         const period = hour >= 12 ? "PM" : "AM";
-
-        const displayHour =
-            hour === 0
-                ? 12
-                : hour > 12
-                    ? hour - 12
-                    : hour;
+        const displayHour = hour % 12 || 12;
 
         return `${displayHour}:${minutes} ${period}`;
     }
 
+    function formatDate(
+        date: string,
+        options: Intl.DateTimeFormatOptions
+    ) {
+        // Parse date-only values as local calendar dates to avoid
+        // displaying the previous day in some time zones.
+        const [year, month, day] = date.split("-").map(Number);
+        const parsedDate = new Date(year, month - 1, day);
+
+        return parsedDate.toLocaleDateString("en-US", options);
+    }
+
     return (
-        <main className="min-h-screen bg-[#F4F6F5] pb-24 text-[#0C2340]">
+        <main className="min-h-screen bg-[#F5F7FA] pb-28 text-[#0C2340]">
 
-            {/* HERO HEADER */}
+            {/* WELCOME HEADER */}
             <header className="relative overflow-hidden bg-[#071522] text-white">
+                <div className="absolute inset-x-0 top-0 flex h-1">
+                    <div className="flex-1 bg-[#16803A]" />
+                    <div className="flex-1 bg-[#F4C430]" />
+                    <div className="flex-1 bg-[#F15A24]" />
+                </div>
 
-                <div className="absolute left-0 top-0 h-1 w-full bg-gradient-to-r from-[#16803A] via-[#F4C430] to-[#F15A24]" />
+                <div className="pointer-events-none absolute -right-16 -top-12 h-48 w-48 rounded-full bg-[#16803A]/20 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#F15A24]/15 blur-3xl" />
 
-                <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#16803A] opacity-20 blur-3xl" />
-
-                <div className="absolute -left-20 bottom-0 h-40 w-40 rounded-full bg-[#F15A24] opacity-20 blur-3xl" />
-
-                <div className="relative mx-auto max-w-md px-5 pb-7 pt-9">
-
-                    {/* Brand */}
+                <div className="relative mx-auto max-w-lg px-5 pb-7 pt-8">
                     <div className="flex items-center justify-between">
-
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#F4C430]">
+                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#F4C430]">
                                 SEAConnect
                             </p>
-
                             <p className="mt-1 text-xs text-gray-400">
                                 Students of East Africa
                             </p>
                         </div>
 
-                        <div className="flex gap-1 text-lg">
-                            🇪🇹 🇰🇪 🇺🇬
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">
+                            🌍
                         </div>
-
                     </div>
 
-                    {/* Welcome */}
-                    <div className="mt-8 flex items-end justify-between">
-
-                        <div>
-
+                    <div className="mt-8 flex items-center justify-between gap-4">
+                        <div className="min-w-0">
                             <p className="text-sm text-gray-400">
-                                Welcome back
+                                Welcome back,
                             </p>
 
-                            <h1 className="mt-1 text-3xl font-bold">
+                            <h1 className="mt-1 truncate text-3xl font-extrabold tracking-tight">
                                 {firstName} 👋
                             </h1>
 
-                            <div className="mt-3 flex items-center gap-2">
-
-                                <span className="h-2 w-2 rounded-full bg-[#16803A]" />
-
-                                <p className="text-xs text-gray-300">
-                                    East African Community
-                                </p>
-
+                            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+                                <span className="h-2 w-2 rounded-full bg-green-400" />
+                                <span className="text-xs text-gray-300">
+                                    Your East African community
+                                </span>
                             </div>
-
                         </div>
 
-                        <div className="flex flex-col items-end gap-2">
-
-                            <div className="flex items-center gap-2">
-
-                                <NotificationBell />
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#0C2340] text-lg font-bold">
-                                    {firstName.charAt(0).toUpperCase()}
-                                </div>
-
+                        <div className="flex shrink-0 flex-col items-center gap-2">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#0C2340] text-lg font-bold">
+                                {firstName.charAt(0).toUpperCase()}
                             </div>
 
-                            {profile?.role === "officer" && (
-                                <Link
-                                    href="/admin"
-                                    prefetch={true}
-                                    className="rounded-xl bg-[#F15A24] px-3 py-2 text-xs font-semibold text-white"
-                                >
-                                    Admin
-                                </Link>
-                            )}
-
+                            <NotificationBell />
                         </div>
-
                     </div>
 
-                    {/* Logout */}
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-5 flex items-center justify-between gap-3">
+                        {profile?.role === "officer" ? (
+                            <Link
+                                href="/admin"
+                                className="rounded-xl bg-[#F15A24] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600"
+                            >
+                                Admin Dashboard →
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/profile"
+                                className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                            >
+                                My Profile →
+                            </Link>
+                        )}
+
                         <LogoutButton />
                     </div>
-
                 </div>
-
             </header>
 
-            <div className="mx-auto max-w-md px-5 py-6">
+            <div className="mx-auto max-w-lg space-y-8 px-5 py-6">
 
-                {/* PUSH NOTIFICATIONS */}
-                <div className="space-y-3">
+                {/* NOTIFICATIONS */}
+                <EnableNotifications />
 
-                    <EnableNotifications />
-
-
-                </div>
-
-                {/* EAST AFRICA STRIP */}
-                <div className="mb-7 mt-6 overflow-hidden rounded-2xl bg-[#0C2340] shadow-sm">
-
+                {/* COMMUNITY BANNER */}
+                <section className="overflow-hidden rounded-3xl bg-[#0C2340] shadow-sm">
                     <div className="flex h-1">
                         <div className="flex-1 bg-[#16803A]" />
                         <div className="flex-1 bg-[#F4C430]" />
                         <div className="flex-1 bg-[#F15A24]" />
                     </div>
 
-                    <div className="flex items-center justify-between px-5 py-4">
-
+                    <div className="flex items-center justify-between gap-4 p-5">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-[#F4C430]">
-                                Our Community
+                            <p className="text-xs font-bold uppercase tracking-widest text-[#F4C430]">
+                                One community
                             </p>
 
-                            <p className="mt-1 text-sm text-white">
-                                Connecting East African students at UTSA
+                            <h2 className="mt-2 text-lg font-bold text-white">
+                                East Africa, connected.
+                            </h2>
+
+                            <p className="mt-1 text-sm leading-5 text-gray-300">
+                                Meet, connect, and grow together at UTSA.
                             </p>
                         </div>
 
-                        <div className="ml-3 shrink-0 text-xl">
-                            🇹🇿 🇰🇪 🇺🇬
-                        </div>
-
+                        <div className="shrink-0 text-4xl">🤝</div>
                     </div>
-
-                </div>
+                </section>
 
                 {/* QUICK ACCESS */}
                 <section>
-
-                    <div className="mb-4 flex items-center justify-between">
-
-                        <h2 className="text-lg font-bold">
-                            Quick Access
-                        </h2>
-
-                        <div className="h-1 w-10 rounded-full bg-[#F15A24]" />
-
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                Explore
+                            </p>
+                            <h2 className="mt-1 text-xl font-extrabold">
+                                Quick Access
+                            </h2>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-
-                        {/* Events */}
                         <Link
                             href="/events"
-                            prefetch={true}
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#F15A24]" />
-
-                            <div className="p-5">
-
-                                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-2xl">
+                            <div className="p-4">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-2xl">
                                     📅
                                 </div>
-
-                                <p className="font-bold">
-                                    Events
+                                <h3 className="mt-4 font-bold">Events</h3>
+                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                    Find your next experience
                                 </p>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    See what's happening
+                                <p className="mt-3 text-sm font-bold text-[#F15A24]">
+                                    Explore →
                                 </p>
-
                             </div>
                         </Link>
 
-                        {/* Announcements */}
                         <Link
                             href="/announcements"
-                            prefetch={true}
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#F4C430]" />
-
-                            <div className="p-5">
-
-                                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-50 text-2xl">
+                            <div className="p-4">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-50 text-2xl">
                                     📢
                                 </div>
-
-                                <p className="font-bold">
+                                <h3 className="mt-4 font-bold">
                                     Announcements
+                                </h3>
+                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                    Stay in the loop
                                 </p>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Latest SEA news
+                                <p className="mt-3 text-sm font-bold text-[#0C2340]">
+                                    Read updates →
                                 </p>
-
                             </div>
                         </Link>
 
-                        {/* Meetings */}
                         <Link
                             href="/meetings"
-                            prefetch={true}
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#0C2340]" />
-
-                            <div className="p-5">
-
-                                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-2xl">
+                            <div className="p-4">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
                                     🤝
                                 </div>
-
-                                <p className="font-bold">
-                                    Meetings
+                                <h3 className="mt-4 font-bold">Meetings</h3>
+                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                    Stay connected with SEA
                                 </p>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Upcoming meetings
+                                <p className="mt-3 text-sm font-bold text-[#0C2340]">
+                                    View meetings →
                                 </p>
-
                             </div>
                         </Link>
 
-                        {/* Members */}
                         <Link
                             href="/members"
-                            prefetch={true}
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
                         >
                             <div className="h-1 bg-[#16803A]" />
-
-                            <div className="p-5">
-
-                                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-2xl">
+                            <div className="p-4">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-2xl">
                                     👥
                                 </div>
-
-                                <p className="font-bold">
-                                    Members
+                                <h3 className="mt-4 font-bold">Members</h3>
+                                <p className="mt-1 text-xs leading-5 text-gray-500">
+                                    Meet the SEA community
                                 </p>
-
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Meet the community
+                                <p className="mt-3 text-sm font-bold text-[#16803A]">
+                                    Connect →
                                 </p>
-
                             </div>
                         </Link>
-
                     </div>
-
                 </section>
 
+                <Link
+                    href="/chat"
+                    className="mt-4 flex items-center justify-between rounded-2xl bg-[#0C2340] p-4 text-white shadow-sm transition hover:bg-[#16395F]"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F15A24] text-2xl">
+                            💬
+                        </div>
+
+                        <div>
+                            <h3 className="font-bold">SEAConnect Chat</h3>
+                            <p className="text-sm text-gray-300">
+                                Message members and join group chats
+                            </p>
+                        </div>
+                    </div>
+
+                    <span className="text-2xl">›</span>
+                </Link>
+
                 {/* UPCOMING EVENT */}
-                <section className="mt-9">
-
-                    <div className="mb-4 flex items-center justify-between">
-
-                        <h2 className="text-lg font-bold">
-                            Upcoming Event
-                        </h2>
+                <section>
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                Save the date
+                            </p>
+                            <h2 className="mt-1 text-xl font-extrabold">
+                                Upcoming Event
+                            </h2>
+                        </div>
 
                         <Link
                             href="/events"
-                            prefetch={true}
-                            className="text-sm font-bold text-[#F15A24]"
+                            className="text-sm font-bold text-[#F15A24] hover:underline"
                         >
-                            View all →
+                            All events →
                         </Link>
-
                     </div>
 
                     {upcomingEvent ? (
-
-                        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-
-                            <div className="relative bg-[#0C2340] px-5 py-5 text-white">
-
-                                <div className="absolute right-5 top-4 text-xl">
-                                    🇸🇴
+                        <article className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70">
+                            {upcomingEventImageUrl ? (
+                                <div className="relative">
+                                    <img
+                                        src={upcomingEventImageUrl}
+                                        alt={`Photo for ${upcomingEvent.title}`}
+                                        className="h-56 w-full object-cover"
+                                    />
+                                    <div className="absolute bottom-3 left-3 rounded-full bg-[#0C2340]/90 px-3 py-1.5 text-xs font-bold text-white">
+                                        Upcoming SEA Event
+                                    </div>
                                 </div>
+                            ) : (
+                                <div className="flex h-32 items-center justify-center bg-gradient-to-br from-[#0C2340] to-[#16803A] text-5xl">
+                                    🌍
+                                </div>
+                            )}
 
-                                <p className="text-xs font-semibold uppercase tracking-wider text-[#F4C430]">
-                                    {new Date(
-                                        upcomingEvent.event_date
-                                    ).toLocaleDateString("en-US", {
+                            <div className="bg-[#0C2340] px-5 py-5 text-white">
+                                <p className="text-xs font-bold uppercase tracking-widest text-[#F4C430]">
+                                    {formatDate(upcomingEvent.event_date, {
                                         month: "long",
                                         year: "numeric",
                                     })}
                                 </p>
 
-                                <h3 className="mt-1 pr-10 text-xl font-bold">
+                                <h3 className="mt-2 text-2xl font-extrabold">
                                     {upcomingEvent.title}
                                 </h3>
-
                             </div>
 
-                            <div className="p-5">
-
+                            <div className="space-y-4 p-5">
                                 {upcomingEvent.description && (
                                     <p className="text-sm leading-6 text-gray-600">
                                         {upcomingEvent.description}
                                     </p>
                                 )}
 
-                                <div className="mt-5 flex gap-3">
-
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-lg">
                                         📅
                                     </div>
-
                                     <div>
-
-                                        <p className="font-semibold">
-                                            {new Date(
-                                                upcomingEvent.event_date
-                                            ).toLocaleDateString("en-US", {
+                                        <p className="text-sm font-bold">
+                                            {formatDate(upcomingEvent.event_date, {
                                                 weekday: "long",
                                                 month: "long",
                                                 day: "numeric",
                                                 year: "numeric",
                                             })}
                                         </p>
-
                                         {upcomingEvent.event_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(
-                                                    upcomingEvent.event_time
-                                                )}
+                                                {formatTime(upcomingEvent.event_time)}
                                             </p>
                                         )}
-
                                     </div>
-
                                 </div>
 
                                 {upcomingEvent.location && (
-                                    <div className="mt-4 flex gap-3">
-
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-lg">
                                             📍
                                         </div>
-
                                         <div>
-                                            <p className="font-semibold">
+                                            <p className="text-sm font-bold">
                                                 {upcomingEvent.location}
                                             </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Event location
+                                            </p>
                                         </div>
-
                                     </div>
                                 )}
 
                                 <Link
                                     href="/events"
-                                    prefetch={true}
-                                    className="mt-5 block w-full rounded-xl bg-[#F15A24] px-4 py-3 text-center font-bold text-white transition hover:opacity-90"
+                                    className="block w-full rounded-xl bg-[#F15A24] px-4 py-3.5 text-center text-sm font-bold text-white transition hover:bg-orange-600"
                                 >
-                                    View Event
+                                    View Event Details →
                                 </Link>
-
                             </div>
-
-                        </div>
-
+                        </article>
                     ) : (
-
-                        <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
-
-                            <div className="text-3xl">
+                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-3xl">
                                 📅
                             </div>
-
-                            <h3 className="mt-3 font-bold">
-                                No upcoming events
+                            <h3 className="mt-4 font-bold">
+                                Nothing on the calendar yet
                             </h3>
-
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-2 text-sm leading-6 text-gray-500">
                                 Check back soon for upcoming SEA events.
                             </p>
-
                         </div>
-
                     )}
-
                 </section>
 
                 {/* UPCOMING MEETING */}
-                <section className="mt-9">
-
-                    <div className="mb-4 flex items-center justify-between">
-
-                        <h2 className="text-lg font-bold">
-                            Upcoming Meeting
-                        </h2>
+                <section>
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                Stay involved
+                            </p>
+                            <h2 className="mt-1 text-xl font-extrabold">
+                                Upcoming Meeting
+                            </h2>
+                        </div>
 
                         <Link
                             href="/meetings"
-                            prefetch={true}
-                            className="text-sm font-bold text-[#16803A]"
+                            className="text-sm font-bold text-[#16803A] hover:underline"
                         >
-                            View all →
+                            All meetings →
                         </Link>
-
                     </div>
 
                     {upcomingMeeting ? (
-
-                        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-
-                            <div className="relative bg-[#16803A] px-5 py-5 text-white">
-
-                                <div className="absolute right-5 top-4 text-xl">
-                                    🇰🇪
+                        <article className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70">
+                            <div className="flex items-center gap-4 bg-[#16803A] p-5 text-white">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl">
+                                    🤝
                                 </div>
-
-                                <p className="text-xs font-semibold uppercase tracking-wider text-[#F4C430]">
-                                    SEA Meeting
-                                </p>
-
-                                <h3 className="mt-1 pr-10 text-xl font-bold">
-                                    {upcomingMeeting.title}
-                                </h3>
-
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-green-100">
+                                        SEA Meeting
+                                    </p>
+                                    <h3 className="mt-1 text-lg font-bold">
+                                        {upcomingMeeting.title}
+                                    </h3>
+                                </div>
                             </div>
 
-                            <div className="p-5">
-
+                            <div className="space-y-4 p-5">
                                 {upcomingMeeting.description && (
                                     <p className="text-sm leading-6 text-gray-600">
                                         {upcomingMeeting.description}
                                     </p>
                                 )}
 
-                                <div className="mt-5 flex gap-3">
-
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-lg">
                                         📅
                                     </div>
-
                                     <div>
-
-                                        <p className="font-semibold">
-                                            {new Date(
-                                                upcomingMeeting.meeting_date
-                                            ).toLocaleDateString("en-US", {
+                                        <p className="text-sm font-bold">
+                                            {formatDate(upcomingMeeting.meeting_date, {
                                                 weekday: "long",
                                                 month: "long",
                                                 day: "numeric",
                                                 year: "numeric",
                                             })}
                                         </p>
-
                                         {upcomingMeeting.meeting_time && (
                                             <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(
-                                                    upcomingMeeting.meeting_time
-                                                )}
+                                                {formatTime(upcomingMeeting.meeting_time)}
                                             </p>
                                         )}
-
                                     </div>
-
                                 </div>
 
                                 {upcomingMeeting.location && (
-                                    <div className="mt-4 flex gap-3">
-
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-50">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-lg">
                                             📍
                                         </div>
-
-                                        <p className="font-semibold">
+                                        <p className="text-sm font-bold">
                                             {upcomingMeeting.location}
                                         </p>
-
                                     </div>
                                 )}
 
                                 <Link
                                     href="/meetings"
-                                    prefetch={true}
-                                    className="mt-5 block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center font-bold text-white transition hover:opacity-90"
+                                    className="block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center text-sm font-bold text-white transition hover:opacity-90"
                                 >
-                                    View Meeting
+                                    View Meeting Details →
                                 </Link>
-
                             </div>
-
-                        </div>
-
+                        </article>
                     ) : (
-
-                        <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
-
-                            <div className="text-3xl">
+                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-3xl">
                                 🤝
                             </div>
-
-                            <h3 className="mt-3 font-bold">
+                            <h3 className="mt-4 font-bold">
                                 No upcoming meetings
                             </h3>
-
-                            <p className="mt-1 text-sm text-gray-500">
-                                Check back soon for upcoming SEA meetings.
+                            <p className="mt-2 text-sm leading-6 text-gray-500">
+                                Check back soon for SEA meeting updates.
                             </p>
-
                         </div>
-
                     )}
-
                 </section>
 
+
                 {/* LATEST ANNOUNCEMENT */}
-                <section className="mt-9">
-
-                    <div className="mb-4 flex items-center justify-between">
-
-                        <h2 className="text-lg font-bold">
-                            Latest Announcement
-                        </h2>
+                <section>
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                                Stay informed
+                            </p>
+                            <h2 className="mt-1 text-xl font-extrabold">
+                                Latest Announcement
+                            </h2>
+                        </div>
 
                         <Link
                             href="/announcements"
-                            prefetch={true}
-                            className="text-sm font-bold text-[#F4C430]"
+                            className="text-sm font-bold text-[#F15A24] hover:underline"
                         >
-                            View all →
+                            All news →
                         </Link>
-
                     </div>
 
                     {latestAnnouncement ? (
-
                         <Link
                             href="/announcements"
-                            prefetch={true}
-                            className="block overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
+                            className="block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:shadow-md"
                         >
-
                             <div className="h-1 bg-[#F4C430]" />
 
-                            <div className="p-5">
-
-                                <div className="flex gap-4">
-
-                                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-xl">
-                                        📢
-                                    </div>
-
-                                    <div className="min-w-0">
-
-                                        <h3 className="font-bold">
-                                            {latestAnnouncement.title}
-                                        </h3>
-
-                                        {latestAnnouncement.content && (
-                                            <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-500">
-                                                {latestAnnouncement.content}
-                                            </p>
-                                        )}
-
-                                        <p className="mt-3 text-xs font-medium text-gray-400">
-                                            Posted recently
-                                        </p>
-
-                                    </div>
-
+                            <div className="flex gap-4 p-5">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-yellow-50 text-2xl">
+                                    📢
                                 </div>
 
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-[#A87900]">
+                                        Latest update
+                                    </p>
+
+                                    <h3 className="mt-1 font-bold">
+                                        {latestAnnouncement.title}
+                                    </h3>
+
+                                    {latestAnnouncement.content && (
+                                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-500">
+                                            {latestAnnouncement.content}
+                                        </p>
+                                    )}
+
+                                    <p className="mt-3 text-sm font-bold text-[#F15A24]">
+                                        Read announcement →
+                                    </p>
+                                </div>
                             </div>
-
                         </Link>
-
                     ) : (
-
-                        <div className="rounded-2xl bg-white p-7 text-center shadow-sm">
-
-                            <div className="text-3xl">
+                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-50 text-3xl">
                                 📢
                             </div>
-
-                            <h3 className="mt-3 font-bold">
+                            <h3 className="mt-4 font-bold">
                                 No announcements yet
                             </h3>
-
-                            <p className="mt-1 text-sm text-gray-500">
-                                Check back soon for SEA announcements.
+                            <p className="mt-2 text-sm text-gray-500">
+                                New updates from SEA will appear here.
                             </p>
-
                         </div>
-
                     )}
-
                 </section>
 
-                {/* COMMUNITY FOOTER */}
-                <section className="mt-9 overflow-hidden rounded-2xl bg-[#071522] text-white shadow-sm">
-
+                {/* FOOTER */}
+                <footer className="overflow-hidden rounded-3xl bg-[#071522] text-center text-white">
                     <div className="flex h-1">
                         <div className="flex-1 bg-[#16803A]" />
                         <div className="flex-1 bg-[#F4C430]" />
                         <div className="flex-1 bg-[#F15A24]" />
                     </div>
 
-                    <div className="p-6 text-center">
-
-                        <h3 className="mt-4 text-lg font-bold">
+                    <div className="px-5 py-7">
+                        <p className="text-2xl">🌍</p>
+                        <h2 className="mt-3 text-lg font-extrabold">
                             With SEA, Hakuna Matata.
-                        </h3>
-
+                        </h2>
                         <p className="mt-2 text-sm leading-6 text-gray-400">
-                            Connecting Students of East Africa
-                            at UTSA.
+                            Connecting Students of East Africa at UTSA.
                         </p>
-
+                        <p className="mt-4 text-xs font-semibold tracking-widest text-[#F4C430]">
+                            ONE COMMUNITY. MANY CULTURES.
+                        </p>
                     </div>
-
-                </section>
-
+                </footer>
             </div>
 
             <BottomNav />
-
         </main>
     );
 }

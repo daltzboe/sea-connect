@@ -16,10 +16,37 @@ export default async function EventsPage() {
     const { data: events, error } = await supabase
         .from("events")
         .select(
-            "id, title, description, event_date, event_time, location"
+            "id, title, description, event_date, event_time, location, image_url"
         )
         .order("event_date", { ascending: true })
         .order("event_time", { ascending: true });
+    const eventsWithImages = await Promise.all(
+        (events ?? []).map(async (event) => {
+            if (!event.image_url) {
+                return {
+                    ...event,
+                    imageSignedUrl: null,
+                };
+            }
+
+            const { data, error: imageError } =
+                await supabase.storage
+                    .from("event-images")
+                    .createSignedUrl(event.image_url, 3600);
+
+            if (imageError) {
+                console.error(
+                    "Could not load event image:",
+                    imageError.message
+                );
+            }
+
+            return {
+                ...event,
+                imageSignedUrl: data?.signedUrl ?? null,
+            };
+        })
+    );
 
     function formatTime(time: string) {
         if (!time) return "";
@@ -117,11 +144,18 @@ export default async function EventsPage() {
                 {/* Events */}
                 <div className="space-y-5">
 
-                    {events?.map((event) => (
+                    {eventsWithImages.map((event) => (
                         <article
                             key={event.id}
                             className="overflow-hidden rounded-2xl bg-white shadow-sm"
                         >
+                            {event.imageSignedUrl && (
+                                <img
+                                    src={event.imageSignedUrl}
+                                    alt={`Photo for ${event.title}`}
+                                    className="h-52 w-full object-cover"
+                                />
+                            )}
 
                             {/* Event Header */}
                             <div className="bg-[#F15A24] px-5 py-4 text-white">

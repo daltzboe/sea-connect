@@ -1,9 +1,17 @@
+
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { sendPushNotification } from "@/lib/push";
 
 export async function POST(request: Request) {
+    let supabase:
+        | Awaited<ReturnType<typeof createSupabaseServerClient>>
+        | null = null;
+
+    let uploadedImagePath: string | null = null;
+    let eventCreated = false;
+
     try {
         const { user, profile } = await getCurrentProfile();
 
@@ -21,39 +29,114 @@ export async function POST(request: Request) {
             );
         }
 
-        const body = await request.json();
+        const formData = await request.formData();
 
-        const {
-            title,
-            description,
-            eventDate,
-            eventTime,
-            location,
-        } = body;
+        const title = formData.get("title");
+        const description = formData.get("description");
+        const eventDate = formData.get("eventDate");
+        const eventTime = formData.get("eventTime");
+        const location = formData.get("location");
+        const image = formData.get("image");
 
-        if (!title || !eventDate || !eventTime || !location) {
+        if (
+            typeof title !== "string" ||
+            !title.trim() ||
+            typeof eventDate !== "string" ||
+            !eventDate ||
+            typeof eventTime !== "string" ||
+            !eventTime ||
+            typeof location !== "string" ||
+            !location.trim() ||
+            (description !== null &&
+                typeof description !== "string")
+        ) {
             return NextResponse.json(
-                { error: "Missing required event information." },
+                { error: "Missing or invalid event information." },
                 { status: 400 }
             );
         }
 
-        const supabase =
-            await createSupabaseServerClient();
+        const allowedTypes: Record<string, string> = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+        };
 
-        // Create the event
-        const { data: event, error: eventError } =
-            await supabase
-                .from("events")
-                .insert({
-                    title,
-                    description,
-                    event_date: eventDate,
-                    event_time: eventTime,
-                    location,
-                })
-                .select()
-                .single();
+        if (
+            image !== null &&
+            !(image instanceof File)
+        ) {
+            return NextResponse.json(
+                { error: "Invalid image upload." },
+                { status: 400 }
+            );
+        }
+
+        if (image instanceof File) {
+            if (image.size === 0 || image.size > 5 * 1024 * 1024) {
+                return NextResponse.json(
+                    { error: "Image must be 5 MB or smaller." },
+                    { status: 400 }
+                );
+            }
+
+            if (!allowedTypes[image.type]) {
+                return NextResponse.json(
+                    { error: "Use a JPG, PNG, or WebP image." },
+                    { status: 400 }
+                );
+            }
+        }
+
+        supabase = await createSupabaseServerClient();
+
+        // Upload the optional event photo.
+        if (image instanceof File) {
+            const extension = allowedTypes[image.type];
+
+            uploadedImagePath =
+                `${user.id}/${crypto.randomUUID()}.${extension}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from("event-images")
+                .upload(uploadedImagePath, image, {
+                    contentType: image.type,
+                    cacheControl: "3600",
+                    upsert: false,
+                });
+
+            if (uploadError) {
+                console.error(
+                    "Event image upload failed:",
+                    uploadError.message
+                );
+
+                return NextResponse.json(
+                    {
+                        error:
+                            "Could not upload event image. Check Supabase Storage permissions.",
+                    },
+                    { status: 500 }
+                );
+            }
+        }
+
+        // Create the event with its optional image path.
+        const { data: event, error: eventError } = await supabase
+            .from("events")
+            .insert({
+                title: title.trim(),
+                description:
+                    typeof description === "string"
+                        ? description
+                        : "",
+                event_date: eventDate,
+                event_time: eventTime,
+                location: location.trim(),
+                image_url: uploadedImagePath,
+            })
+            .select()
+            .single();
 
         if (eventError) {
             console.error(
@@ -61,13 +144,22 @@ export async function POST(request: Request) {
                 eventError.message
             );
 
+            if (uploadedImagePath) {
+                await supabase.storage
+                    .from("event-images")
+                    .remove([uploadedImagePath]);
+                uploadedImagePath = null;
+            }
+
             return NextResponse.json(
                 { error: eventError.message },
                 { status: 500 }
             );
         }
 
-        // Get users who have push notifications enabled
+        eventCreated = true;
+
+        // Find members who have push subscriptions.
         const {
             data: subscriptions,
             error: subscriptionError,
@@ -86,28 +178,23 @@ export async function POST(request: Request) {
         const userIds = [
             ...new Set(
                 (subscriptions ?? []).map(
-                    (subscription) =>
-                        subscription.user_id
+                    (subscription) => subscription.user_id
                 )
             ),
         ];
 
-        // Create in-app notifications
+        // Create in-app notifications.
         if (userIds.length > 0) {
-            const notifications = userIds.map(
-                (userId) => ({
-                    user_id: userId,
-                    title: "New Event",
-                    message: title,
-                    type: "event",
-                    link: `/events/${event.id}`,
-                    is_read: false,
-                })
-            );
+            const notifications = userIds.map((userId) => ({
+                user_id: userId,
+                title: "New Event",
+                message: title.trim(),
+                type: "event",
+                link: `/events/${event.id}`,
+                is_read: false,
+            }));
 
-            const {
-                error: notificationError,
-            } = await supabase
+            const { error: notificationError } = await supabase
                 .from("notifications")
                 .insert(notifications);
 
@@ -119,13 +206,20 @@ export async function POST(request: Request) {
             }
         }
 
-        // Send push notifications
+        // Send push notifications without failing event creation.
         for (const userId of userIds) {
-            await sendPushNotification(userId, {
-                title: "New SEAConnect Event",
-                body: title,
-                url: `/events/${event.id}`,
-            });
+            try {
+                await sendPushNotification(userId, {
+                    title: "New SEAConnect Event",
+                    body: title.trim(),
+                    url: `/events/${event.id}`,
+                });
+            } catch (pushError) {
+                console.error(
+                    "Could not send push notification:",
+                    pushError
+                );
+            }
         }
 
         return NextResponse.json({
@@ -133,14 +227,26 @@ export async function POST(request: Request) {
             event,
         });
     } catch (error) {
-        console.error(
-            "Create event error:",
-            error
-        );
+        console.error("Create event error:", error);
+
+        // Only remove the image if event creation did not succeed.
+        if (supabase && uploadedImagePath && !eventCreated) {
+            try {
+                await supabase.storage
+                    .from("event-images")
+                    .remove([uploadedImagePath]);
+            } catch (cleanupError) {
+                console.error(
+                    "Image cleanup failed:",
+                    cleanupError
+                );
+            }
+        }
 
         return NextResponse.json(
             {
-                error: "Something went wrong while creating the event.",
+                error:
+                    "Something went wrong while creating the event.",
             },
             { status: 500 }
         );
