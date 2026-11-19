@@ -4,85 +4,51 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-    {
-        href: "/dashboard",
-        label: "Home",
-        icon: "⌂",
-    },
-    {
-        href: "/events",
-        label: "Events",
-        icon: "📅",
-    },
-    {
-        href: "/meetings",
-        label: "Meetings",
-        icon: "🤝",
-    },
-    {
-        href: "/members",
-        label: "Members",
-        icon: "👥",
-    },
-    {
-        href: "/profile",
-        label: "Profile",
-        icon: "👤",
-    },
+    { href: "/dashboard", label: "Home", icon: "⌂" },
+    { href: "/events", label: "Events", icon: "▦" },
+    { href: "/announcements", label: "Announcements", icon: "◉" },
+    { href: "/meetings", label: "Meetings", icon: "▣" },
+    { href: "/members", label: "Members", icon: "♧" },
+    { href: "/chat", label: "Community chat", icon: "☷" },
+    { href: "/notifications", label: "Notifications", icon: "♢" },
 ];
 
 export default function BottomNav() {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-md">
+        <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-white/10 bg-[#0A1E32] px-5 py-7 lg:flex">
+            <Link href="/dashboard" className="flex items-center gap-3 px-2">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F15A24] text-2xl">🌍</span>
+                <span>
+                    <span className="block text-sm font-black tracking-[0.15em] text-white">SEACONNECT</span>
+                    <span className="mt-1 block text-[10px] tracking-wide text-slate-400">STUDENTS OF EAST AFRICA</span>
+                </span>
+            </Link>
 
-            <div className="mx-auto flex max-w-md items-center justify-around px-1 py-2">
-
+            <p className="mt-10 px-3 text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">Navigate</p>
+            <nav aria-label="Main navigation" className="mt-3 flex flex-1 flex-col gap-1">
                 {items.map((item) => {
-                    const isActive =
-                        pathname === item.href ||
-                        (item.href !== "/dashboard" &&
-                            pathname.startsWith(item.href));
-
+                    const active = pathname === item.href ||
+                        (item.href !== "/dashboard" && pathname.startsWith(item.href));
                     return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            prefetch={true}
-                            aria-current={isActive ? "page" : undefined}
-                            className={`flex min-w-[60px] flex-1 flex-col items-center rounded-xl px-2 py-2 transition-all duration-150 active:scale-95 ${
-                                isActive
-                                    ? "bg-[#16803A]/10 text-[#16803A]"
-                                    : "text-gray-400 hover:text-[#0C2340]"
-                            }`}
-                        >
-                            <span
-                                className={`text-xl leading-none transition-transform duration-150 ${
-                                    isActive ? "scale-110" : ""
-                                }`}
-                            >
-                                {item.icon}
-                            </span>
-
-                            <span
-                                className={`mt-1 text-[10px] font-semibold ${
-                                    isActive
-                                        ? "text-[#16803A]"
-                                        : "text-gray-400"
-                                }`}
-                            >
-                                {item.label}
-                            </span>
+                        <Link key={item.href} href={item.href}
+                            aria-current={active ? "page" : undefined}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${active
+                                ? "bg-[#F15A24] text-white shadow-lg shadow-orange-950/20"
+                                : "text-slate-300 hover:bg-white/8 hover:text-white"}`}>
+                            <span className={`flex h-7 w-7 items-center justify-center rounded-lg text-lg ${active ? "bg-white/15" : "bg-white/5"}`}>{item.icon}</span>
+                            {item.label}
+                            {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white" />}
                         </Link>
                     );
                 })}
+            </nav>
 
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs font-bold text-white">One community. Many cultures.</p>
+                <p className="mt-2 text-[11px] leading-5 text-slate-400">Your East African community at UTSA.</p>
             </div>
-
-            {/* iPhone safe-area spacing */}
-            <div className="h-[env(safe-area-inset-bottom)]" />
-
-        </nav>
+        </aside>
     );
 }
