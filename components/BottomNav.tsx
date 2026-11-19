@@ -48,7 +48,7 @@ export default function BottomNav() {
                     className="fixed inset-0 z-[75] bg-black/65 backdrop-blur-sm lg:hidden" />
             )}
 
-            <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-white/10 bg-[#0A1E32] px-5 py-7 lg:flex">
+            <aside aria-label="Main navigation" className="fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-white/10 bg-[#0A1E32] px-5 py-7 lg:flex">
                 <Link href="/dashboard" className="flex items-center gap-3 px-2">
                     <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F15A24] text-2xl">🌍</span>
                     <span>
