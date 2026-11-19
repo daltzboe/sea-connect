@@ -1,8 +1,5 @@
-"use client";
-
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { useMemo } from "react";
 import BottomNav from "@/components/BottomNav";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationBell from "@/components/NotificationBell";
