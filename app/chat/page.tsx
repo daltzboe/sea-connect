@@ -561,7 +561,7 @@ export default function ChatPage() {
         }
     }
 
-    const isActiveGroupAdmin = Boolean(activeConversation?.is_group && activeGroupMembers.some((member) => member.id === userId && member.role === "admin"));
+    const isActiveGroupAdmin = Boolean(activeConversation?.is_group && (activeConversation.created_by === userId || activeGroupMembers.some((member) => member.id === userId && member.role === "admin")));
 
     async function refreshGroupMembers(conversationId: string) {
         const { data: participantRows, error: participantError } = await supabase.from("conversation_members").select("user_id, role").eq("conversation_id", conversationId);
