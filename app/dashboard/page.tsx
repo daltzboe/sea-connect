@@ -1,7 +1,6 @@
-
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
+import DashboardSidebar from "@/components/DashboardSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationBell from "@/components/NotificationBell";
 import EnableNotifications from "@/components/EnableNotifications";
@@ -19,8 +18,13 @@ export default async function Dashboard() {
         profile?.full_name ||
         user.user_metadata?.full_name ||
         "SEA Member";
-
     const firstName = fullName.trim().split(/\s+/)[0] || "Member";
+    const initials = fullName
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part: string) => part.charAt(0).toUpperCase())
+        .join("");
 
     const supabase = await createSupabaseServerClient();
     const today = new Date().toISOString().split("T")[0];
@@ -38,14 +42,12 @@ export default async function Dashboard() {
             .order("event_time", { ascending: true })
             .limit(1)
             .maybeSingle(),
-
         supabase
             .from("announcements")
             .select("*")
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle(),
-
         supabase
             .from("meetings")
             .select("*")
@@ -56,7 +58,6 @@ export default async function Dashboard() {
             .maybeSingle(),
     ]);
 
-    // Create a temporary URL for the private event image.
     let upcomingEventImageUrl: string | null = null;
 
     if (upcomingEvent?.image_url) {
@@ -73,562 +74,402 @@ export default async function Dashboard() {
 
     function formatTime(time: string | null) {
         if (!time) return "";
-
         const [hours, minutes] = time.split(":");
         const hour = Number(hours);
         const period = hour >= 12 ? "PM" : "AM";
-        const displayHour = hour % 12 || 12;
-
-        return `${displayHour}:${minutes} ${period}`;
+        return `${hour % 12 || 12}:${minutes} ${period}`;
     }
 
     function formatDate(
         date: string,
         options: Intl.DateTimeFormatOptions
     ) {
-        // Parse date-only values as local calendar dates to avoid
-        // displaying the previous day in some time zones.
         const [year, month, day] = date.split("-").map(Number);
-        const parsedDate = new Date(year, month - 1, day);
-
-        return parsedDate.toLocaleDateString("en-US", options);
+        return new Date(year, month - 1, day).toLocaleDateString(
+            "en-US",
+            options
+        );
     }
 
     return (
-        <main className="min-h-screen bg-[#F5F7FA] pb-28 text-[#0C2340]">
-
-            {/* WELCOME HEADER */}
-            <header className="relative overflow-hidden bg-[#071522] text-white">
-                <div className="absolute inset-x-0 top-0 flex h-1">
-                    <div className="flex-1 bg-[#16803A]" />
-                    <div className="flex-1 bg-[#F4C430]" />
-                    <div className="flex-1 bg-[#F15A24]" />
-                </div>
-
-                <div className="pointer-events-none absolute -right-16 -top-12 h-48 w-48 rounded-full bg-[#16803A]/20 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-[#F15A24]/15 blur-3xl" />
-
-                <div className="relative mx-auto max-w-lg px-5 pb-7 pt-8">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#F4C430]">
-                                SEAConnect
-                            </p>
-                            <p className="mt-1 text-xs text-gray-400">
-                                Students of East Africa
-                            </p>
-                        </div>
-
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">
-                            🌍
-                        </div>
+        <main className="min-h-screen bg-[#071522] text-slate-100">
+            <DashboardSidebar fullName={fullName} isOfficer={profile?.role === "officer"} />
+            <div className="min-h-screen lg:pl-[272px]">
+            <div className="mx-auto min-h-screen max-w-5xl bg-[#071522] shadow-[0_0_60px_rgba(12,35,64,0.05)]">
+                <header className="relative overflow-hidden rounded-b-[2rem] border-b border-white/10 bg-[#0C2340] px-5 pb-8 pt-6 text-white sm:px-7 lg:rounded-b-[2rem]">
+                    <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-[#F15A24]/20 blur-3xl" />
+                    <div className="absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl" />
+                    <div className="absolute inset-x-0 top-0 flex h-1">
+                        <span className="flex-1 bg-[#16803A]" />
+                        <span className="flex-1 bg-[#F4C430]" />
+                        <span className="flex-1 bg-[#F15A24]" />
                     </div>
 
-                    <div className="mt-8 flex items-center justify-between gap-4">
-                        <div className="min-w-0">
-                            <p className="text-sm text-gray-400">
-                                Welcome back,
-                            </p>
-
-                            <h1 className="mt-1 truncate text-3xl font-extrabold tracking-tight">
-                                {firstName} 👋
-                            </h1>
-
-                            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-                                <span className="h-2 w-2 rounded-full bg-green-400" />
-                                <span className="text-xs text-gray-300">
-                                    Your East African community
+                    <div className="relative flex items-center justify-between pl-12 lg:pl-0">
+                        <Link href="/dashboard" className="flex items-center gap-3">
+                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#102B46]/10 text-2xl ring-1 ring-white/15">
+                                🌍
+                            </span>
+                            <span>
+                                <span className="block text-sm font-black tracking-[0.16em] text-white">
+                                    SEACONNECT
                                 </span>
-                            </div>
-                        </div>
-
-                        <div className="flex shrink-0 flex-col items-center gap-2">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#0C2340] text-lg font-bold">
-                                {firstName.charAt(0).toUpperCase()}
-                            </div>
-
+                                <span className="mt-0.5 block text-[11px] text-blue-100/70">
+                                    Students of East Africa · UTSA
+                                </span>
+                            </span>
+                        </Link>
+                        <div className="flex items-center gap-3">
                             <NotificationBell />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#F4C430] bg-[#173B5D] text-sm font-extrabold text-white">
+                                {initials || "S"}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="mt-5 flex items-center justify-between gap-3">
-                        {profile?.role === "officer" ? (
-                            <Link
-                                href="/admin"
-                                className="rounded-xl bg-[#F15A24] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600"
-                            >
-                                Admin Dashboard →
-                            </Link>
-                        ) : (
-                            <Link
-                                href="/profile"
-                                className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
-                            >
-                                My Profile →
-                            </Link>
-                        )}
+                    <div className="relative mt-9">
+                        <p className="text-sm font-medium text-blue-100/75">
+                            YOUR COMMUNITY, YOUR HOME
+                        </p>
+                        <h1 className="mt-2 max-w-md text-3xl font-black leading-tight tracking-tight sm:text-4xl">
+                            Hey, {firstName} <span aria-hidden="true">👋</span>
+                        </h1>
+                        <p className="mt-2 max-w-sm text-sm leading-6 text-blue-100/75">
+                            Find your people, discover what is happening, and stay connected with East Africa at UTSA.
+                        </p>
 
+                        <div className="mt-6 flex flex-wrap items-center gap-3">
+                            <Link
+                                href="/events"
+                                className="inline-flex items-center justify-center rounded-xl bg-[#F15A24] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-orange-950/20 transition hover:-translate-y-0.5 hover:bg-[#ff6a32]"
+                            >
+                                Explore events <span className="ml-2">→</span>
+                            </Link>
+                            {profile?.role === "officer" ? (
+                                <Link
+                                    href="/admin"
+                                    className="rounded-xl border border-white/20 bg-[#102B46]/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#102B46]/15"
+                                >
+                                    Officer tools
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/profile"
+                                    className="rounded-xl border border-white/20 bg-[#102B46]/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#102B46]/15"
+                                >
+                                    View profile
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="relative mt-7 flex items-center justify-between border-t border-white/10 pt-4">
+                        <div className="flex items-center gap-2 text-xs text-blue-100/70">
+                            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.12)]" />
+                            A community that feels like home
+                        </div>
                         <LogoutButton />
                     </div>
-                </div>
-            </header>
+                </header>
 
-            <div className="mx-auto max-w-lg space-y-8 px-5 py-6">
+                <div className="space-y-8 px-5 py-7 sm:px-7 lg:px-8">
+                    <EnableNotifications />
 
-                {/* NOTIFICATIONS */}
-                <EnableNotifications />
-
-                {/* COMMUNITY BANNER */}
-                <section className="overflow-hidden rounded-3xl bg-[#0C2340] shadow-sm">
-                    <div className="flex h-1">
-                        <div className="flex-1 bg-[#16803A]" />
-                        <div className="flex-1 bg-[#F4C430]" />
-                        <div className="flex-1 bg-[#F15A24]" />
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4 p-5">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-[#F4C430]">
-                                One community
-                            </p>
-
-                            <h2 className="mt-2 text-lg font-bold text-white">
-                                East Africa, connected.
-                            </h2>
-
-                            <p className="mt-1 text-sm leading-5 text-gray-300">
-                                Meet, connect, and grow together at UTSA.
-                            </p>
+                    <section>
+                        <div className="mb-4 flex items-end justify-between">
+                            <div>
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#F15A24]">
+                                    Find your corner
+                                </p>
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
+                                    Explore SEAConnect
+                                </h2>
+                            </div>
+                            <span className="pb-1 text-xs font-medium text-slate-400">
+                                Your campus community
+                            </span>
                         </div>
 
-                        <div className="shrink-0 text-4xl">🤝</div>
-                    </div>
-                </section>
-
-                {/* QUICK ACCESS */}
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Explore
-                            </p>
-                            <h2 className="mt-1 text-xl font-extrabold">
-                                Quick Access
-                            </h2>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            {[
+                                {
+                                    href: "/events",
+                                    label: "Events",
+                                    detail: "What's happening",
+                                    icon: "🎉",
+                                    tone: "bg-[#F15A24]/15",
+                                    accent: "text-[#F15A24]",
+                                },
+                                {
+                                    href: "/announcements",
+                                    label: "Updates",
+                                    detail: "News from SEA",
+                                    icon: "📣",
+                                    tone: "bg-amber-400/10",
+                                    accent: "text-amber-300",
+                                },
+                                {
+                                    href: "/meetings",
+                                    label: "Meetings",
+                                    detail: "Get involved",
+                                    icon: "🤝",
+                                    tone: "bg-sky-400/10",
+                                    accent: "text-white",
+                                },
+                                {
+                                    href: "/members",
+                                    label: "Members",
+                                    detail: "Meet your people",
+                                    icon: "🌍",
+                                    tone: "bg-emerald-400/10",
+                                    accent: "text-emerald-300",
+                                },
+                            ].map((item) => (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className="group rounded-2xl border border-white/10 bg-[#102B46] p-4 shadow-[0_4px_18px_rgba(15,35,60,0.035)] transition duration-200 hover:-translate-y-1 hover:border-orange-200 hover:shadow-lg"
+                                >
+                                    <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone} text-2xl transition group-hover:scale-105`}>
+                                        {item.icon}
+                                    </span>
+                                    <span className="mt-4 block text-sm font-extrabold text-white">
+                                        {item.label}
+                                    </span>
+                                    <span className="mt-1 block text-[11px] leading-4 text-slate-400">
+                                        {item.detail}
+                                    </span>
+                                    <span className={`mt-3 block text-xs font-bold ${item.accent}`}>
+                                        Explore <span aria-hidden="true">↗</span>
+                                    </span>
+                                </Link>
+                            ))}
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <Link
-                            href="/events"
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
-                        >
-                            <div className="h-1 bg-[#F15A24]" />
-                            <div className="p-4">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50 text-2xl">
-                                    📅
-                                </div>
-                                <h3 className="mt-4 font-bold">Events</h3>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
-                                    Find your next experience
-                                </p>
-                                <p className="mt-3 text-sm font-bold text-[#F15A24]">
-                                    Explore →
-                                </p>
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/announcements"
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
-                        >
-                            <div className="h-1 bg-[#F4C430]" />
-                            <div className="p-4">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-50 text-2xl">
-                                    📢
-                                </div>
-                                <h3 className="mt-4 font-bold">
-                                    Announcements
-                                </h3>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
-                                    Stay in the loop
-                                </p>
-                                <p className="mt-3 text-sm font-bold text-[#0C2340]">
-                                    Read updates →
-                                </p>
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/meetings"
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
-                        >
-                            <div className="h-1 bg-[#0C2340]" />
-                            <div className="p-4">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
-                                    🤝
-                                </div>
-                                <h3 className="mt-4 font-bold">Meetings</h3>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
-                                    Stay connected with SEA
-                                </p>
-                                <p className="mt-3 text-sm font-bold text-[#0C2340]">
-                                    View meetings →
-                                </p>
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/members"
-                            className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:-translate-y-1 hover:shadow-md"
-                        >
-                            <div className="h-1 bg-[#16803A]" />
-                            <div className="p-4">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-2xl">
-                                    👥
-                                </div>
-                                <h3 className="mt-4 font-bold">Members</h3>
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
-                                    Meet the SEA community
-                                </p>
-                                <p className="mt-3 text-sm font-bold text-[#16803A]">
-                                    Connect →
-                                </p>
-                            </div>
-                        </Link>
-                    </div>
-                </section>
-
-                <Link
-                    href="/chat"
-                    className="mt-4 flex items-center justify-between rounded-2xl bg-[#0C2340] p-4 text-white shadow-sm transition hover:bg-[#16395F]"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F15A24] text-2xl">
+                    <Link
+                        href="/chat"
+                        className="group flex items-center gap-4 overflow-hidden rounded-2xl bg-[#102E4D] p-4 text-white shadow-lg shadow-[#0C2340]/10 transition hover:bg-[#173B5D]"
+                    >
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F15A24] text-2xl">
                             💬
-                        </div>
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-extrabold">
+                                The conversation continues
+                            </span>
+                            <span className="mt-1 block text-xs text-blue-100/70">
+                                Catch up and connect with SEA members.
+                            </span>
+                        </span>
+                        <span className="text-xl text-orange-300 transition group-hover:translate-x-1">
+                            →
+                        </span>
+                    </Link>
 
-                        <div>
-                            <h3 className="font-bold">SEAConnect Chat</h3>
-                            <p className="text-sm text-gray-300">
-                                Message members and join group chats
-                            </p>
-                        </div>
-                    </div>
-
-                    <span className="text-2xl">›</span>
-                </Link>
-
-                {/* UPCOMING EVENT */}
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Save the date
-                            </p>
-                            <h2 className="mt-1 text-xl font-extrabold">
-                                Upcoming Event
-                            </h2>
-                        </div>
-
-                        <Link
-                            href="/events"
-                            className="text-sm font-bold text-[#F15A24] hover:underline"
-                        >
-                            All events →
-                        </Link>
-                    </div>
-
-                    {upcomingEvent ? (
-                        <article className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70">
-                            {upcomingEventImageUrl ? (
-                                <div className="relative">
-                                    <img
-                                        src={upcomingEventImageUrl}
-                                        alt={`Photo for ${upcomingEvent.title}`}
-                                        className="h-56 w-full object-cover"
-                                    />
-                                    <div className="absolute bottom-3 left-3 rounded-full bg-[#0C2340]/90 px-3 py-1.5 text-xs font-bold text-white">
-                                        Upcoming SEA Event
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex h-32 items-center justify-center bg-gradient-to-br from-[#0C2340] to-[#16803A] text-5xl">
-                                    🌍
-                                </div>
-                            )}
-
-                            <div className="bg-[#0C2340] px-5 py-5 text-white">
-                                <p className="text-xs font-bold uppercase tracking-widest text-[#F4C430]">
-                                    {formatDate(upcomingEvent.event_date, {
-                                        month: "long",
-                                        year: "numeric",
-                                    })}
+                    <section>
+                        <div className="mb-4 flex items-end justify-between">
+                            <div>
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#F15A24]">
+                                    Save your spot
                                 </p>
-
-                                <h3 className="mt-2 text-2xl font-extrabold">
-                                    {upcomingEvent.title}
-                                </h3>
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
+                                    Coming up at SEA
+                                </h2>
                             </div>
+                            <Link href="/events" className="text-xs font-bold text-[#F15A24] hover:underline">
+                                All events →
+                            </Link>
+                        </div>
 
-                            <div className="space-y-4 p-5">
-                                {upcomingEvent.description && (
-                                    <p className="text-sm leading-6 text-gray-600">
-                                        {upcomingEvent.description}
-                                    </p>
-                                )}
-
-                                <div className="flex items-start gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-lg">
-                                        📅
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold">
+                        {upcomingEvent ? (
+                            <article className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#102B46] shadow-[0_8px_30px_rgba(15,35,60,0.07)]">
+                                <div className="relative h-52 bg-gradient-to-br from-[#0C2340] via-[#16466A] to-[#16803A] sm:h-64">
+                                    {upcomingEventImageUrl ? (
+                                        <img
+                                            src={upcomingEventImageUrl}
+                                            alt={`Photo for ${upcomingEvent.title}`}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full items-center justify-center text-6xl">
+                                            🌍
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#071522]/80 via-transparent to-black/10" />
+                                    <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-[#0C2340]/75 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
+                                        Featured SEA event
+                                    </span>
+                                    <div className="absolute bottom-4 left-5 right-5 text-white">
+                                        <p className="text-xs font-semibold text-orange-200">
                                             {formatDate(upcomingEvent.event_date, {
-                                                weekday: "long",
                                                 month: "long",
                                                 day: "numeric",
                                                 year: "numeric",
                                             })}
                                         </p>
-                                        {upcomingEvent.event_time && (
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(upcomingEvent.event_time)}
-                                            </p>
-                                        )}
+                                        <h3 className="mt-1 text-2xl font-black leading-tight">
+                                            {upcomingEvent.title}
+                                        </h3>
                                     </div>
                                 </div>
-
-                                {upcomingEvent.location && (
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-lg">
-                                            📍
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold">
-                                                {upcomingEvent.location}
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                Event location
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <Link
-                                    href="/events"
-                                    className="block w-full rounded-xl bg-[#F15A24] px-4 py-3.5 text-center text-sm font-bold text-white transition hover:bg-orange-600"
-                                >
-                                    View Event Details →
-                                </Link>
-                            </div>
-                        </article>
-                    ) : (
-                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-3xl">
-                                📅
-                            </div>
-                            <h3 className="mt-4 font-bold">
-                                Nothing on the calendar yet
-                            </h3>
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                Check back soon for upcoming SEA events.
-                            </p>
-                        </div>
-                    )}
-                </section>
-
-                {/* UPCOMING MEETING */}
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Stay involved
-                            </p>
-                            <h2 className="mt-1 text-xl font-extrabold">
-                                Upcoming Meeting
-                            </h2>
-                        </div>
-
-                        <Link
-                            href="/meetings"
-                            className="text-sm font-bold text-[#16803A] hover:underline"
-                        >
-                            All meetings →
-                        </Link>
-                    </div>
-
-                    {upcomingMeeting ? (
-                        <article className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70">
-                            <div className="flex items-center gap-4 bg-[#16803A] p-5 text-white">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl">
-                                    🤝
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-xs font-bold uppercase tracking-widest text-green-100">
-                                        SEA Meeting
-                                    </p>
-                                    <h3 className="mt-1 text-lg font-bold">
-                                        {upcomingMeeting.title}
-                                    </h3>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 p-5">
-                                {upcomingMeeting.description && (
-                                    <p className="text-sm leading-6 text-gray-600">
-                                        {upcomingMeeting.description}
-                                    </p>
-                                )}
-
-                                <div className="flex items-start gap-3">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-lg">
-                                        📅
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold">
-                                            {formatDate(upcomingMeeting.meeting_date, {
-                                                weekday: "long",
-                                                month: "long",
-                                                day: "numeric",
-                                                year: "numeric",
-                                            })}
-                                        </p>
-                                        {upcomingMeeting.meeting_time && (
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                {formatTime(upcomingMeeting.meeting_time)}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {upcomingMeeting.location && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-lg">
-                                            📍
-                                        </div>
-                                        <p className="text-sm font-bold">
-                                            {upcomingMeeting.location}
-                                        </p>
-                                    </div>
-                                )}
-
-                                <Link
-                                    href="/meetings"
-                                    className="block w-full rounded-xl bg-[#0C2340] px-4 py-3 text-center text-sm font-bold text-white transition hover:opacity-90"
-                                >
-                                    View Meeting Details →
-                                </Link>
-                            </div>
-                        </article>
-                    ) : (
-                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-3xl">
-                                🤝
-                            </div>
-                            <h3 className="mt-4 font-bold">
-                                No upcoming meetings
-                            </h3>
-                            <p className="mt-2 text-sm leading-6 text-gray-500">
-                                Check back soon for SEA meeting updates.
-                            </p>
-                        </div>
-                    )}
-                </section>
-
-
-                {/* LATEST ANNOUNCEMENT */}
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Stay informed
-                            </p>
-                            <h2 className="mt-1 text-xl font-extrabold">
-                                Latest Announcement
-                            </h2>
-                        </div>
-
-                        <Link
-                            href="/announcements"
-                            className="text-sm font-bold text-[#F15A24] hover:underline"
-                        >
-                            All news →
-                        </Link>
-                    </div>
-
-                    {latestAnnouncement ? (
-                        <Link
-                            href="/announcements"
-                            className="block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-gray-200/70 transition hover:shadow-md"
-                        >
-                            <div className="h-1 bg-[#F4C430]" />
-
-                            <div className="flex gap-4 p-5">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-yellow-50 text-2xl">
-                                    📢
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-bold uppercase tracking-widest text-[#A87900]">
-                                        Latest update
-                                    </p>
-
-                                    <h3 className="mt-1 font-bold">
-                                        {latestAnnouncement.title}
-                                    </h3>
-
-                                    {latestAnnouncement.content && (
-                                        <p className="mt-2 line-clamp-3 text-sm leading-6 text-gray-500">
-                                            {latestAnnouncement.content}
+                                <div className="p-5">
+                                    {upcomingEvent.description && (
+                                        <p className="line-clamp-2 text-sm leading-6 text-slate-300">
+                                            {upcomingEvent.description}
                                         </p>
                                     )}
-
-                                    <p className="mt-3 text-sm font-bold text-[#F15A24]">
-                                        Read announcement →
-                                    </p>
+                                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-slate-300">
+                                        <span className="inline-flex items-center gap-2">
+                                            <span className="text-base">🕒</span>
+                                            {formatTime(upcomingEvent.event_time) || "Time to be announced"}
+                                        </span>
+                                        {upcomingEvent.location && (
+                                            <span className="inline-flex items-center gap-2">
+                                                <span className="text-base">📍</span>
+                                                {upcomingEvent.location}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <Link
+                                        href="/events"
+                                        className="mt-5 flex w-full items-center justify-center rounded-xl bg-[#F15A24] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#df4d1b]"
+                                    >
+                                        View event details <span className="ml-2">→</span>
+                                    </Link>
                                 </div>
+                            </article>
+                        ) : (
+                            <div className="rounded-2xl border border-dashed border-white/15 bg-[#102B46] px-6 py-9 text-center">
+                                <span className="text-3xl">📅</span>
+                                <h3 className="mt-3 font-bold text-white">Nothing scheduled just yet</h3>
+                                <p className="mx-auto mt-1 max-w-xs text-sm leading-5 text-slate-400">
+                                    Keep an eye here for the next chance to meet, celebrate, and connect.
+                                </p>
                             </div>
-                        </Link>
-                    ) : (
-                        <div className="rounded-3xl bg-white p-7 text-center shadow-sm ring-1 ring-gray-200/70">
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-50 text-3xl">
-                                📢
+                        )}
+                    </section>
+
+                    <section>
+                        <div className="mb-4 flex items-end justify-between">
+                            <div>
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-300">
+                                    Stay connected
+                                </p>
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
+                                    Next SEA meeting
+                                </h2>
                             </div>
-                            <h3 className="mt-4 font-bold">
-                                No announcements yet
-                            </h3>
-                            <p className="mt-2 text-sm text-gray-500">
-                                New updates from SEA will appear here.
+                            <Link href="/meetings" className="text-xs font-bold text-emerald-300 hover:underline">
+                                All meetings →
+                            </Link>
+                        </div>
+
+                        {upcomingMeeting ? (
+                            <article className="flex gap-4 rounded-2xl border border-white/10 bg-[#102B46] p-4 shadow-[0_4px_18px_rgba(15,35,60,0.04)]">
+                                <div className="flex w-[4.25rem] shrink-0 flex-col items-center justify-center rounded-xl bg-emerald-400/10 px-2 py-3 text-center">
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">
+                                        {formatDate(upcomingMeeting.meeting_date, { month: "short" })}
+                                    </span>
+                                    <span className="mt-0.5 text-2xl font-black text-white">
+                                        {formatDate(upcomingMeeting.meeting_date, { day: "numeric" })}
+                                    </span>
+                                </div>
+                                <div className="min-w-0 flex-1 py-1">
+                                    <h3 className="font-extrabold text-white">
+                                        {upcomingMeeting.title}
+                                    </h3>
+                                    {upcomingMeeting.description && (
+                                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
+                                            {upcomingMeeting.description}
+                                        </p>
+                                    )}
+                                    <p className="mt-2 text-xs font-semibold text-slate-300">
+                                        {formatTime(upcomingMeeting.meeting_time) || "Time to be announced"}
+                                        {upcomingMeeting.location ? ` · ${upcomingMeeting.location}` : ""}
+                                    </p>
+                                    <Link href="/meetings" className="mt-3 inline-block text-xs font-bold text-emerald-300 hover:underline">
+                                        Meeting details →
+                                    </Link>
+                                </div>
+                            </article>
+                        ) : (
+                            <div className="rounded-2xl border border-white/10 bg-[#102B46] p-6 text-center">
+                                <p className="text-2xl">🤝</p>
+                                <p className="mt-2 text-sm font-bold text-white">No upcoming meetings</p>
+                                <p className="mt-1 text-xs text-slate-400">New meeting details will show up here.</p>
+                            </div>
+                        )}
+                    </section>
+
+                    <section>
+                        <div className="mb-4 flex items-end justify-between">
+                            <div>
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-amber-300">
+                                    From the community
+                                </p>
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
+                                    The latest
+                                </h2>
+                            </div>
+                            <Link href="/announcements" className="text-xs font-bold text-[#F15A24] hover:underline">
+                                All updates →
+                            </Link>
+                        </div>
+
+                        {latestAnnouncement ? (
+                            <Link
+                                href="/announcements"
+                                className="group block rounded-2xl border border-white/10 bg-[#102B46] p-5 shadow-[0_4px_18px_rgba(15,35,60,0.04)] transition hover:-translate-y-0.5 hover:shadow-md"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-xl">
+                                        📣
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
+                                            SEA announcement
+                                        </span>
+                                        <h3 className="mt-1 font-extrabold text-white">
+                                            {latestAnnouncement.title}
+                                        </h3>
+                                    </div>
+                                    <span className="text-lg text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#F15A24]">
+                                        →
+                                    </span>
+                                </div>
+                                {latestAnnouncement.content && (
+                                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-300">
+                                        {latestAnnouncement.content}
+                                    </p>
+                                )}
+                            </Link>
+                        ) : (
+                            <div className="rounded-2xl border border-white/10 bg-[#102B46] p-6 text-center">
+                                <p className="text-2xl">📣</p>
+                                <p className="mt-2 text-sm font-bold text-white">No announcements yet</p>
+                                <p className="mt-1 text-xs text-slate-400">Community updates will appear here.</p>
+                            </div>
+                        )}
+                    </section>
+
+                    <footer className="overflow-hidden rounded-2xl bg-[#0C2340] text-center text-white">
+                        <div className="flex h-1">
+                            <span className="flex-1 bg-[#16803A]" />
+                            <span className="flex-1 bg-[#F4C430]" />
+                            <span className="flex-1 bg-[#F15A24]" />
+                        </div>
+                        <div className="px-5 py-7">
+                            <p className="text-2xl">🌍</p>
+                            <p className="mt-2 text-base font-extrabold">One community. Many cultures.</p>
+                            <p className="mt-1 text-xs text-blue-100/65">
+                                Connecting Students of East Africa at UTSA.
                             </p>
                         </div>
-                    )}
-                </section>
-
-                {/* FOOTER */}
-                <footer className="overflow-hidden rounded-3xl bg-[#071522] text-center text-white">
-                    <div className="flex h-1">
-                        <div className="flex-1 bg-[#16803A]" />
-                        <div className="flex-1 bg-[#F4C430]" />
-                        <div className="flex-1 bg-[#F15A24]" />
-                    </div>
-
-                    <div className="px-5 py-7">
-                        <p className="text-2xl">🌍</p>
-                        <h2 className="mt-3 text-lg font-extrabold">
-                            With SEA, Hakuna Matata.
-                        </h2>
-                        <p className="mt-2 text-sm leading-6 text-gray-400">
-                            Connecting Students of East Africa at UTSA.
-                        </p>
-                        <p className="mt-4 text-xs font-semibold tracking-widest text-[#F4C430]">
-                            ONE COMMUNITY. MANY CULTURES.
-                        </p>
-                    </div>
-                </footer>
+                    </footer>
+                </div>
             </div>
-
-            <BottomNav />
+            </div>
         </main>
     );
 }
