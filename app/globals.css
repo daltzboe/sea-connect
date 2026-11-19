@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* Shared side navigation layout for authenticated pages. */
+@media (min-width: 1024px) {
+  body:has(aside[aria-label="Main navigation"]) main {
+    padding-left: 248px;
+  }
+}
