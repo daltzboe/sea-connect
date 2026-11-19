@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import BottomNav from "@/components/BottomNav";
+import DashboardSidebar from "@/components/DashboardSidebar";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationBell from "@/components/NotificationBell";
 import EnableNotifications from "@/components/EnableNotifications";
@@ -92,9 +92,11 @@ export default async function Dashboard() {
     }
 
     return (
-        <main className="min-h-screen bg-[#F4F6FA] pb-28 text-[#10243A]">
-            <div className="mx-auto min-h-screen max-w-2xl bg-[#F4F6FA] shadow-[0_0_60px_rgba(12,35,64,0.05)]">
-                <header className="relative overflow-hidden rounded-b-[2rem] bg-[#0C2340] px-5 pb-8 pt-6 text-white sm:px-7">
+        <main className="min-h-screen bg-[#071522] text-slate-100">
+            <DashboardSidebar fullName={fullName} isOfficer={profile?.role === "officer"} />
+            <div className="min-h-screen lg:pl-[272px]">
+            <div className="mx-auto min-h-screen max-w-5xl bg-[#071522] shadow-[0_0_60px_rgba(12,35,64,0.05)]">
+                <header className="relative overflow-hidden rounded-b-[2rem] border-b border-white/10 bg-[#0C2340] px-5 pb-8 pt-6 text-white sm:px-7 lg:rounded-b-[2rem]">
                     <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-[#F15A24]/20 blur-3xl" />
                     <div className="absolute -bottom-28 -left-16 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl" />
                     <div className="absolute inset-x-0 top-0 flex h-1">
@@ -103,9 +105,9 @@ export default async function Dashboard() {
                         <span className="flex-1 bg-[#F15A24]" />
                     </div>
 
-                    <div className="relative flex items-center justify-between">
+                    <div className="relative flex items-center justify-between pl-12 lg:pl-0">
                         <Link href="/dashboard" className="flex items-center gap-3">
-                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-2xl ring-1 ring-white/15">
+                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#102B46]/10 text-2xl ring-1 ring-white/15">
                                 🌍
                             </span>
                             <span>
@@ -146,14 +148,14 @@ export default async function Dashboard() {
                             {profile?.role === "officer" ? (
                                 <Link
                                     href="/admin"
-                                    className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                                    className="rounded-xl border border-white/20 bg-[#102B46]/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#102B46]/15"
                                 >
                                     Officer tools
                                 </Link>
                             ) : (
                                 <Link
                                     href="/profile"
-                                    className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                                    className="rounded-xl border border-white/20 bg-[#102B46]/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#102B46]/15"
                                 >
                                     View profile
                                 </Link>
@@ -170,7 +172,7 @@ export default async function Dashboard() {
                     </div>
                 </header>
 
-                <div className="space-y-8 px-5 py-7 sm:px-7">
+                <div className="space-y-8 px-5 py-7 sm:px-7 lg:px-8">
                     <EnableNotifications />
 
                     <section>
@@ -179,7 +181,7 @@ export default async function Dashboard() {
                                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#F15A24]">
                                     Find your corner
                                 </p>
-                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#0C2340]">
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
                                     Explore SEAConnect
                                 </h2>
                             </div>
@@ -195,7 +197,7 @@ export default async function Dashboard() {
                                     label: "Events",
                                     detail: "What's happening",
                                     icon: "🎉",
-                                    tone: "bg-orange-50",
+                                    tone: "bg-[#F15A24]/15",
                                     accent: "text-[#F15A24]",
                                 },
                                 {
@@ -203,38 +205,38 @@ export default async function Dashboard() {
                                     label: "Updates",
                                     detail: "News from SEA",
                                     icon: "📣",
-                                    tone: "bg-amber-50",
-                                    accent: "text-amber-700",
+                                    tone: "bg-amber-400/10",
+                                    accent: "text-amber-300",
                                 },
                                 {
                                     href: "/meetings",
                                     label: "Meetings",
                                     detail: "Get involved",
                                     icon: "🤝",
-                                    tone: "bg-blue-50",
-                                    accent: "text-[#0C2340]",
+                                    tone: "bg-sky-400/10",
+                                    accent: "text-white",
                                 },
                                 {
                                     href: "/members",
                                     label: "Members",
                                     detail: "Meet your people",
                                     icon: "🌍",
-                                    tone: "bg-emerald-50",
-                                    accent: "text-emerald-700",
+                                    tone: "bg-emerald-400/10",
+                                    accent: "text-emerald-300",
                                 },
                             ].map((item) => (
                                 <Link
                                     key={item.href}
                                     href={item.href}
-                                    className="group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_4px_18px_rgba(15,35,60,0.035)] transition duration-200 hover:-translate-y-1 hover:border-orange-200 hover:shadow-lg"
+                                    className="group rounded-2xl border border-white/10 bg-[#102B46] p-4 shadow-[0_4px_18px_rgba(15,35,60,0.035)] transition duration-200 hover:-translate-y-1 hover:border-orange-200 hover:shadow-lg"
                                 >
                                     <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone} text-2xl transition group-hover:scale-105`}>
                                         {item.icon}
                                     </span>
-                                    <span className="mt-4 block text-sm font-extrabold text-[#0C2340]">
+                                    <span className="mt-4 block text-sm font-extrabold text-white">
                                         {item.label}
                                     </span>
-                                    <span className="mt-1 block text-[11px] leading-4 text-slate-500">
+                                    <span className="mt-1 block text-[11px] leading-4 text-slate-400">
                                         {item.detail}
                                     </span>
                                     <span className={`mt-3 block text-xs font-bold ${item.accent}`}>
@@ -271,7 +273,7 @@ export default async function Dashboard() {
                                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#F15A24]">
                                     Save your spot
                                 </p>
-                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#0C2340]">
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
                                     Coming up at SEA
                                 </h2>
                             </div>
@@ -281,7 +283,7 @@ export default async function Dashboard() {
                         </div>
 
                         {upcomingEvent ? (
-                            <article className="overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,35,60,0.07)]">
+                            <article className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#102B46] shadow-[0_8px_30px_rgba(15,35,60,0.07)]">
                                 <div className="relative h-52 bg-gradient-to-br from-[#0C2340] via-[#16466A] to-[#16803A] sm:h-64">
                                     {upcomingEventImageUrl ? (
                                         <img
@@ -313,11 +315,11 @@ export default async function Dashboard() {
                                 </div>
                                 <div className="p-5">
                                     {upcomingEvent.description && (
-                                        <p className="line-clamp-2 text-sm leading-6 text-slate-600">
+                                        <p className="line-clamp-2 text-sm leading-6 text-slate-300">
                                             {upcomingEvent.description}
                                         </p>
                                     )}
-                                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-slate-600">
+                                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-slate-300">
                                         <span className="inline-flex items-center gap-2">
                                             <span className="text-base">🕒</span>
                                             {formatTime(upcomingEvent.event_time) || "Time to be announced"}
@@ -338,10 +340,10 @@ export default async function Dashboard() {
                                 </div>
                             </article>
                         ) : (
-                            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-9 text-center">
+                            <div className="rounded-2xl border border-dashed border-white/15 bg-[#102B46] px-6 py-9 text-center">
                                 <span className="text-3xl">📅</span>
-                                <h3 className="mt-3 font-bold text-[#0C2340]">Nothing scheduled just yet</h3>
-                                <p className="mx-auto mt-1 max-w-xs text-sm leading-5 text-slate-500">
+                                <h3 className="mt-3 font-bold text-white">Nothing scheduled just yet</h3>
+                                <p className="mx-auto mt-1 max-w-xs text-sm leading-5 text-slate-400">
                                     Keep an eye here for the next chance to meet, celebrate, and connect.
                                 </p>
                             </div>
@@ -351,51 +353,51 @@ export default async function Dashboard() {
                     <section>
                         <div className="mb-4 flex items-end justify-between">
                             <div>
-                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-700">
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-300">
                                     Stay connected
                                 </p>
-                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#0C2340]">
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
                                     Next SEA meeting
                                 </h2>
                             </div>
-                            <Link href="/meetings" className="text-xs font-bold text-emerald-700 hover:underline">
+                            <Link href="/meetings" className="text-xs font-bold text-emerald-300 hover:underline">
                                 All meetings →
                             </Link>
                         </div>
 
                         {upcomingMeeting ? (
-                            <article className="flex gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_4px_18px_rgba(15,35,60,0.04)]">
-                                <div className="flex w-[4.25rem] shrink-0 flex-col items-center justify-center rounded-xl bg-emerald-50 px-2 py-3 text-center">
-                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                            <article className="flex gap-4 rounded-2xl border border-white/10 bg-[#102B46] p-4 shadow-[0_4px_18px_rgba(15,35,60,0.04)]">
+                                <div className="flex w-[4.25rem] shrink-0 flex-col items-center justify-center rounded-xl bg-emerald-400/10 px-2 py-3 text-center">
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">
                                         {formatDate(upcomingMeeting.meeting_date, { month: "short" })}
                                     </span>
-                                    <span className="mt-0.5 text-2xl font-black text-[#0C2340]">
+                                    <span className="mt-0.5 text-2xl font-black text-white">
                                         {formatDate(upcomingMeeting.meeting_date, { day: "numeric" })}
                                     </span>
                                 </div>
                                 <div className="min-w-0 flex-1 py-1">
-                                    <h3 className="font-extrabold text-[#0C2340]">
+                                    <h3 className="font-extrabold text-white">
                                         {upcomingMeeting.title}
                                     </h3>
                                     {upcomingMeeting.description && (
-                                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-400">
                                             {upcomingMeeting.description}
                                         </p>
                                     )}
-                                    <p className="mt-2 text-xs font-semibold text-slate-600">
+                                    <p className="mt-2 text-xs font-semibold text-slate-300">
                                         {formatTime(upcomingMeeting.meeting_time) || "Time to be announced"}
                                         {upcomingMeeting.location ? ` · ${upcomingMeeting.location}` : ""}
                                     </p>
-                                    <Link href="/meetings" className="mt-3 inline-block text-xs font-bold text-emerald-700 hover:underline">
+                                    <Link href="/meetings" className="mt-3 inline-block text-xs font-bold text-emerald-300 hover:underline">
                                         Meeting details →
                                     </Link>
                                 </div>
                             </article>
                         ) : (
-                            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+                            <div className="rounded-2xl border border-white/10 bg-[#102B46] p-6 text-center">
                                 <p className="text-2xl">🤝</p>
-                                <p className="mt-2 text-sm font-bold text-[#0C2340]">No upcoming meetings</p>
-                                <p className="mt-1 text-xs text-slate-500">New meeting details will show up here.</p>
+                                <p className="mt-2 text-sm font-bold text-white">No upcoming meetings</p>
+                                <p className="mt-1 text-xs text-slate-400">New meeting details will show up here.</p>
                             </div>
                         )}
                     </section>
@@ -403,10 +405,10 @@ export default async function Dashboard() {
                     <section>
                         <div className="mb-4 flex items-end justify-between">
                             <div>
-                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-amber-700">
+                                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-amber-300">
                                     From the community
                                 </p>
-                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-[#0C2340]">
+                                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">
                                     The latest
                                 </h2>
                             </div>
@@ -418,17 +420,17 @@ export default async function Dashboard() {
                         {latestAnnouncement ? (
                             <Link
                                 href="/announcements"
-                                className="group block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_4px_18px_rgba(15,35,60,0.04)] transition hover:-translate-y-0.5 hover:shadow-md"
+                                className="group block rounded-2xl border border-white/10 bg-[#102B46] p-5 shadow-[0_4px_18px_rgba(15,35,60,0.04)] transition hover:-translate-y-0.5 hover:shadow-md"
                             >
                                 <div className="flex items-start gap-3">
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-xl">
                                         📣
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
+                                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
                                             SEA announcement
                                         </span>
-                                        <h3 className="mt-1 font-extrabold text-[#0C2340]">
+                                        <h3 className="mt-1 font-extrabold text-white">
                                             {latestAnnouncement.title}
                                         </h3>
                                     </div>
@@ -437,16 +439,16 @@ export default async function Dashboard() {
                                     </span>
                                 </div>
                                 {latestAnnouncement.content && (
-                                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-300">
                                         {latestAnnouncement.content}
                                     </p>
                                 )}
                             </Link>
                         ) : (
-                            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center">
+                            <div className="rounded-2xl border border-white/10 bg-[#102B46] p-6 text-center">
                                 <p className="text-2xl">📣</p>
-                                <p className="mt-2 text-sm font-bold text-[#0C2340]">No announcements yet</p>
-                                <p className="mt-1 text-xs text-slate-500">Community updates will appear here.</p>
+                                <p className="mt-2 text-sm font-bold text-white">No announcements yet</p>
+                                <p className="mt-1 text-xs text-slate-400">Community updates will appear here.</p>
                             </div>
                         )}
                     </section>
@@ -467,7 +469,7 @@ export default async function Dashboard() {
                     </footer>
                 </div>
             </div>
-            <BottomNav />
+            </div>
         </main>
     );
 }
