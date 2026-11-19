@@ -807,14 +807,33 @@ export default function ChatPage() {
                                         <h2 className="truncate font-extrabold text-white">{activeConversation.displayTitle}</h2>
                                         <p className="mt-0.5 truncate text-xs text-slate-400">{activeConversation.is_group ? `${activeGroupMembers.length} members · Group conversation` : "SEAConnect member"}</p>
                                     </div>
+                                    {activeConversation.is_group && <button type="button" onClick={() => setShowGroupSettings((value) => !value)} className="rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-white/5">{isActiveGroupAdmin ? "Group settings" : "Group info"}</button>}
                                     <div className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-300 sm:block">SEAConnect</div>
                                 </div>
 
-                                {activeConversation.is_group && (
-                                    <div className="flex flex-wrap gap-2 border-b border-white/[0.06] bg-[#0A1B2A] px-4 py-2.5 sm:px-6">
-                                        {activeGroupMembers.map((member) => (
-                                            <span key={member.id} className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] text-slate-300">{member.full_name || "SEA Member"}{member.id === userId ? " · You" : ""}</span>
-                                        ))}
+                                {activeConversation.is_group && showGroupSettings && (
+                                    <div className="border-b border-white/10 bg-[#0A1B2A] p-4 sm:px-6">
+                                        <div className="mb-3 flex items-center justify-between"><p className="text-sm font-bold">Group members · {activeGroupMembers.length}</p><button type="button" onClick={() => setShowGroupSettings(false)} className="text-xs text-slate-400">Close</button></div>
+                                        <div className="max-h-44 space-y-2 overflow-y-auto">
+                                            {activeGroupMembers.map((member) => (
+                                                <div key={member.id} className="flex items-center gap-2 rounded-xl bg-white/[0.04] px-3 py-2">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#245276] text-xs font-bold">{(member.full_name || "S").charAt(0).toUpperCase()}</div>
+                                                    <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold">{member.full_name || "SEA Member"}{member.id === userId ? " · You" : ""}</p><p className="text-[10px] text-slate-400">{member.role === "admin" ? "Group admin" : "Member"}</p></div>
+                                                    {isActiveGroupAdmin && member.id !== userId && <button type="button" disabled={groupActionBusy} onClick={() => void toggleGroupAdmin(member)} className="rounded-lg border border-white/10 px-2 py-1 text-[10px] font-semibold text-orange-200 disabled:opacity-40">{member.role === "admin" ? "Remove admin" : "Make admin"}</button>}
+                                                    {isActiveGroupAdmin && member.id !== userId && <button type="button" disabled={groupActionBusy} onClick={() => void removeGroupMember(member.id)} className="rounded-lg border border-red-400/20 px-2 py-1 text-[10px] font-semibold text-red-300 disabled:opacity-40">Remove</button>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {isActiveGroupAdmin && (
+                                            <div className="mt-4 border-t border-white/10 pt-3">
+                                                <p className="mb-2 text-xs font-bold">Add members</p>
+                                                <div className="max-h-28 space-y-1 overflow-y-auto">
+                                                    {members.filter((member) => !activeGroupMembers.some((existing) => existing.id === member.id)).map((member) => <label key={member.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-slate-200 hover:bg-white/5"><input type="checkbox" checked={selectedAddMembers.includes(member.id)} onChange={(event) => setSelectedAddMembers((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} className="accent-[#F15A24]" />{member.full_name || "SEA Member"}</label>)}
+                                                </div>
+                                                <button type="button" onClick={() => void addGroupMembers()} disabled={groupActionBusy || selectedAddMembers.length === 0} className="mt-3 rounded-xl bg-[#F15A24] px-4 py-2 text-xs font-bold text-white disabled:opacity-40">{groupActionBusy ? "Working..." : "Add selected members"}</button>
+                                            </div>
+                                        )}
+                                        <div className="mt-3 border-t border-white/10 pt-3"><button type="button" onClick={() => void leaveGroup()} disabled={groupActionBusy} className="rounded-xl border border-red-400/20 px-4 py-2 text-xs font-bold text-red-300 disabled:opacity-40">Leave group</button></div>
                                     </div>
                                 )}
 
