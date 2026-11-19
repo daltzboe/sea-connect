@@ -418,7 +418,7 @@ export default function ChatPage() {
                     is_group: false,
                     title: null,
                 })
-                .select("id, title, is_group, created_at")
+                .select("id, title, is_group, created_by, created_at")
                 .single();
 
             if (createError) throw createError;
@@ -507,7 +507,7 @@ export default function ChatPage() {
                     is_group: true,
                     title,
                 })
-                .select("id, title, is_group, created_at")
+                .select("id, title, is_group, created_by, created_at")
                 .single();
 
             if (createError) throw createError;
