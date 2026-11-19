@@ -226,6 +226,34 @@ export default function ChatPage() {
         };
     }, [supabase]);
 
+    // Mark incoming messages as delivered while the member has the chat app open.
+    // If the conversation is currently open, mark them read as well.
+    useEffect(() => {
+        if (!userId || conversations.length === 0) return;
+        const channels = conversations.map((conversation) =>
+            supabase
+                .channel("delivery-" + conversation.id)
+                .on("postgres_changes", {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages",
+                    filter: "conversation_id=eq." + conversation.id,
+                }, (payload) => {
+                    const incoming = payload.new as Message;
+                    if (incoming.sender_id === userId) return;
+                    const now = new Date().toISOString();
+                    const receiptUpdate: { delivered_at: string; read_at?: string } = { delivered_at: now };
+                    if (activeId === conversation.id) receiptUpdate.read_at = now;
+                    void supabase.from("message_receipts")
+                        .update(receiptUpdate)
+                        .eq("message_id", incoming.id)
+                        .eq("user_id", userId);
+                })
+                .subscribe()
+        );
+        return () => { channels.forEach((channel) => void supabase.removeChannel(channel)); };
+    }, [userId, conversations, activeId, supabase]);
+
     // Load the selected conversation's members and messages.
     // Subscribe to live message updates.
     useEffect(() => {
