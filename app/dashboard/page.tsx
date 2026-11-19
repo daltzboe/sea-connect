@@ -18,10 +18,10 @@ export default async function Dashboard() {
         profile?.full_name ||
         user.user_metadata?.full_name ||
         "SEA Member";
-    const firstName = fullName.trim().split(/\\s+/)[0] || "Member";
+    const firstName = fullName.trim().split(/\s+/)[0] || "Member";
     const initials = fullName
         .trim()
-        .split(/\\s+/)
+        .split(/\s+/)
         .slice(0, 2)
         .map((part) => part.charAt(0).toUpperCase())
         .join("");
