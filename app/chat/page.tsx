@@ -47,6 +47,10 @@ export default function ChatPage() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [mobileChatOpen, setMobileChatOpen] = useState(false);
+    const [showNewChat, setShowNewChat] = useState(false);
+    const [showCreateGroup, setShowCreateGroup] = useState(false);
 
     const activeConversation = conversations.find(
         (conversation) => conversation.id === activeId
@@ -367,6 +371,8 @@ export default function ChatPage() {
                     participantIds.includes(selectedMember)
                 ) {
                     setActiveId(conversation.id);
+                    setMobileChatOpen(true);
+                    setShowNewChat(false);
                     setSelectedMember("");
                     return;
                 }
@@ -428,6 +434,8 @@ export default function ChatPage() {
             ]);
 
             setActiveId(conversation.id);
+            setMobileChatOpen(true);
+            setShowNewChat(false);
             setSelectedMember("");
         } catch (err) {
             console.error("Could not start conversation:", err);
@@ -511,6 +519,8 @@ export default function ChatPage() {
             ]);
 
             setActiveId(conversation.id);
+            setMobileChatOpen(true);
+            setShowCreateGroup(false);
             setGroupTitle("");
             setSelectedGroupMembers([]);
         } catch (err) {
@@ -593,318 +603,169 @@ export default function ChatPage() {
         }
     }
 
+    const filteredConversations = conversations.filter((conversation) =>
+        conversation.displayTitle.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
-        <main className="min-h-screen bg-[#F5F7FA] pb-28 text-[#0C2340]">
-            <header className="bg-[#071522] text-white">
-                <div className="mx-auto max-w-lg px-5 pb-6 pt-8">
-                    <Link
-                        href="/dashboard"
-                        className="text-sm text-gray-300 hover:text-white"
-                    >
-                        ← Dashboard
-                    </Link>
-
-                    <div className="mt-5 flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F15A24] text-2xl">
-                            💬
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-widest text-[#F4C430]">
-                                SEAConnect
-                            </p>
-                            <h1 className="text-2xl font-extrabold">
-                                Member Chat
-                            </h1>
-                        </div>
-                    </div>
-
-                    <p className="mt-3 text-sm leading-6 text-gray-300">
-                        Stay connected with the SEA community.
-                    </p>
-                </div>
-            </header>
-
-            <div className="mx-auto max-w-lg space-y-5 px-4 py-5">
-                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200/70">
-                    <h2 className="font-bold">Start a conversation</h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Choose a SEAConnect member to message.
-                    </p>
-
-                    <div className="mt-3 flex gap-2">
-                        <select
-                            value={selectedMember}
-                            onChange={(event) =>
-                                setSelectedMember(event.target.value)
-                            }
-                            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-3 text-sm outline-none focus:border-[#F15A24]"
-                        >
-                            <option value="">Select a member</option>
-                            {members.map((member) => (
-                                <option key={member.id} value={member.id}>
-                                    {member.full_name || "SEA Member"}
-                                </option>
-                            ))}
-                        </select>
-
-                        <button
-                            type="button"
-                            onClick={startConversation}
-                            disabled={!selectedMember}
-                            className="rounded-xl bg-[#F15A24] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-                        >
-                            Chat
-                        </button>
-                    </div>
-                </section>
-
-                <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200/70">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-xl">
-                            👥
-                        </div>
-                        <div>
-                            <h2 className="font-bold">Create a group chat</h2>
-                            <p className="text-sm text-gray-500">
-                                Bring SEA members together.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 space-y-4">
-                        <div>
-                            <label
-                                htmlFor="groupTitle"
-                                className="mb-2 block text-sm font-semibold"
-                            >
-                                Group name
-                            </label>
-                            <input
-                                id="groupTitle"
-                                type="text"
-                                value={groupTitle}
-                                onChange={(event) =>
-                                    setGroupTitle(event.target.value)
-                                }
-                                placeholder="e.g. SEA Game Night Team"
-                                maxLength={80}
-                                className="w-full rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none focus:border-[#F15A24]"
-                            />
-                        </div>
-
-                        <div>
-                            <p className="mb-2 text-sm font-semibold">
-                                Select members ({selectedGroupMembers.length} selected)
-                            </p>
-
-                            <div className="max-h-52 space-y-1 overflow-y-auto rounded-xl border border-gray-200 p-2">
-                                {members.length === 0 ? (
-                                    <p className="p-3 text-sm text-gray-500">
-                                        No other members found.
-                                    </p>
-                                ) : (
-                                    members.map((member) => (
-                                        <label
-                                            key={member.id}
-                                            className="flex cursor-pointer items-center gap-3 rounded-lg p-3 hover:bg-gray-50"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedGroupMembers.includes(member.id)}
-                                                onChange={(event) => {
-                                                    setSelectedGroupMembers((current) =>
-                                                        event.target.checked
-                                                            ? [...current, member.id]
-                                                            : current.filter(
-                                                                (id) => id !== member.id
-                                                            )
-                                                    );
-                                                }}
-                                                className="h-4 w-4 accent-[#F15A24]"
-                                            />
-                                            <span className="text-sm font-medium">
-                                                {member.full_name || "SEA Member"}
-                                            </span>
-                                        </label>
-                                    ))
-                                )}
+        <main className="min-h-screen bg-[#071522] pb-24 text-white lg:pb-8">
+            <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-[1500px] flex-col px-3 py-3 sm:px-5 lg:min-h-screen lg:px-6 lg:py-6">
+                <header className="mb-4 flex items-center justify-between gap-4 px-1">
+                    <div>
+                        <Link href="/dashboard" className="text-xs font-semibold text-slate-400 transition hover:text-white">
+                            ← Dashboard
+                        </Link>
+                        <div className="mt-2 flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F15A24] text-xl shadow-lg shadow-orange-950/30">💬</div>
+                            <div>
+                                <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-[#F4C430]">SEAConnect</p>
+                                <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Messages</h1>
                             </div>
-
-                            <p className="mt-2 text-xs text-gray-500">
-                                Select at least two members. You'll be included automatically.
-                            </p>
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={createGroup}
-                            disabled={
-                                creatingGroup ||
-                                !groupTitle.trim() ||
-                                selectedGroupMembers.length < 2
-                            }
-                            className="w-full rounded-xl bg-[#0C2340] px-4 py-3 font-bold text-white transition hover:bg-[#16395F] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {creatingGroup ? "Creating group..." : "＋ Create Group"}
-                        </button>
                     </div>
-                </section>
+                    <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300 sm:flex">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                        SEA community
+                    </div>
+                </header>
 
                 {error && (
-                    <div
-                        role="alert"
-                        className="rounded-xl bg-red-50 p-3 text-sm text-red-700"
-                    >
+                    <div role="alert" className="mb-3 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                         {error}
                     </div>
                 )}
 
-                {loading ? (
-                    <div className="rounded-2xl bg-white p-8 text-center text-sm text-gray-500">
-                        Loading your chats...
-                    </div>
-                ) : (
-                    <>
-                        <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70">
-                            <div className="border-b border-gray-100 px-4 py-3">
-                                <h2 className="font-bold">Your conversations</h2>
+                <section className="grid min-h-[650px] flex-1 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0B1D2D] shadow-2xl shadow-black/20 lg:grid-cols-[350px_minmax(0,1fr)]">
+                    <aside className={`flex min-h-[650px] flex-col border-r border-white/10 bg-[#0D2235] ${mobileChatOpen ? "hidden lg:flex" : "flex"}`}>
+                        <div className="border-b border-white/10 p-4 sm:p-5">
+                            <div className="mb-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <h2 className="text-lg font-extrabold">Your chats</h2>
+                                    <p className="mt-1 text-xs text-slate-400">Keep up with your SEA people</p>
+                                </div>
+                                <button type="button" onClick={() => { setShowNewChat((value) => !value); setShowCreateGroup(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F15A24] text-xl font-bold text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-500" aria-label="Start a new chat" title="New chat">
+                                    +
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">⌕</span>
+                                <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search conversations" className="w-full rounded-xl border border-white/10 bg-[#071522] py-3 pl-9 pr-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-[#F15A24]" />
                             </div>
 
-                            {conversations.length === 0 ? (
-                                <div className="p-6 text-center">
-                                    <div className="text-3xl">👋</div>
-                                    <p className="mt-3 font-bold">
-                                        No conversations yet
-                                    </p>
-                                    <p className="mt-1 text-sm text-gray-500">
-                                        Select a member above to start chatting.
-                                    </p>
+                            {showNewChat && (
+                                <div className="mt-3 rounded-2xl border border-white/10 bg-[#102B46] p-3">
+                                    <p className="mb-2 text-sm font-bold">Start a direct message</p>
+                                    <select value={selectedMember} onChange={(event) => setSelectedMember(event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#071522] px-3 py-3 text-sm text-white outline-none focus:border-[#F15A24]">
+                                        <option value="">Choose a SEA member</option>
+                                        {members.map((member) => <option key={member.id} value={member.id}>{member.full_name || "SEA Member"}</option>)}
+                                    </select>
+                                    <div className="mt-2 flex gap-2">
+                                        <button type="button" onClick={startConversation} disabled={!selectedMember} className="flex-1 rounded-xl bg-[#F15A24] px-3 py-2.5 text-sm font-bold text-white disabled:opacity-40">Open chat</button>
+                                        <button type="button" onClick={() => setShowNewChat(false)} className="rounded-xl border border-white/10 px-3 py-2.5 text-sm font-semibold text-slate-300">Cancel</button>
+                                    </div>
+                                    <button type="button" onClick={() => { setShowCreateGroup(true); setShowNewChat(false); }} className="mt-3 w-full text-left text-xs font-semibold text-orange-300 hover:text-orange-200">＋ Create a group instead</button>
+                                </div>
+                            )}
+
+                            {showCreateGroup && (
+                                <div className="mt-3 rounded-2xl border border-white/10 bg-[#102B46] p-3">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <p className="text-sm font-bold">New group</p>
+                                        <button type="button" onClick={() => setShowCreateGroup(false)} className="text-xs text-slate-400 hover:text-white">Close</button>
+                                    </div>
+                                    <input value={groupTitle} onChange={(event) => setGroupTitle(event.target.value)} placeholder="Group name" maxLength={80} className="w-full rounded-xl border border-white/10 bg-[#071522] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-[#F15A24]" />
+                                    <p className="mb-2 mt-3 text-xs text-slate-400">Choose at least two members</p>
+                                    <div className="max-h-36 space-y-1 overflow-y-auto">
+                                        {members.map((member) => (
+                                            <label key={member.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-slate-200 hover:bg-white/5">
+                                                <input type="checkbox" checked={selectedGroupMembers.includes(member.id)} onChange={(event) => setSelectedGroupMembers((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} className="accent-[#F15A24]" />
+                                                {member.full_name || "SEA Member"}
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <button type="button" onClick={createGroup} disabled={creatingGroup || !groupTitle.trim() || selectedGroupMembers.length < 2} className="mt-3 w-full rounded-xl bg-[#F15A24] px-3 py-2.5 text-sm font-bold text-white disabled:opacity-40">{creatingGroup ? "Creating..." : "Create group"}</button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto">
+                            {loading ? (
+                                <div className="p-8 text-center text-sm text-slate-400">Loading your conversations...</div>
+                            ) : filteredConversations.length === 0 ? (
+                                <div className="px-6 py-12 text-center">
+                                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-2xl">👋</div>
+                                    <p className="mt-4 font-bold">{conversations.length === 0 ? "No chats yet" : "No matches found"}</p>
+                                    <p className="mt-1 text-sm leading-6 text-slate-400">{conversations.length === 0 ? "Start a conversation with someone in the SEA community." : "Try another name or search term."}</p>
+                                    {conversations.length === 0 && <button type="button" onClick={() => setShowNewChat(true)} className="mt-4 rounded-xl bg-[#F15A24] px-4 py-2.5 text-sm font-bold text-white">Start chatting</button>}
                                 </div>
                             ) : (
-                                <div className="divide-y divide-gray-100">
-                                    {conversations.map((conversation) => (
-                                        <button
-                                            type="button"
-                                            key={conversation.id}
-                                            onClick={() =>
-                                                setActiveId(conversation.id)
-                                            }
-                                            className={`flex w-full items-center gap-3 p-4 text-left transition ${
-                                                activeId === conversation.id
-                                                    ? "bg-orange-50"
-                                                    : "hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0C2340] font-bold text-white">
-                                                {conversation.displayTitle
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                <div className="divide-y divide-white/[0.06]">
+                                    {filteredConversations.map((conversation) => (
+                                        <button key={conversation.id} type="button" onClick={() => { setActiveId(conversation.id); setMobileChatOpen(true); }} className={`flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-white/[0.04] sm:px-5 ${activeId === conversation.id ? "bg-[#153653]" : ""}`}>
+                                            <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-extrabold text-white ${conversation.is_group ? "bg-gradient-to-br from-[#F15A24] to-amber-500" : "bg-gradient-to-br from-[#245276] to-[#102B46]"}`}>
+                                                {conversation.is_group ? "👥" : conversation.displayTitle.charAt(0).toUpperCase()}
                                             </div>
-
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate font-bold">
-                                                    {conversation.displayTitle}
-                                                </p>
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    {conversation.is_group
-                                                        ? "Group conversation"
-                                                        : "Direct message"}
-                                                </p>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="truncate text-sm font-bold text-white">{conversation.displayTitle}</p>
+                                                    <span className="shrink-0 text-[10px] text-slate-500">{conversation.is_group ? "GROUP" : "DIRECT"}</span>
+                                                </div>
+                                                <p className="mt-1 truncate text-xs text-slate-400">{conversation.is_group ? "Group conversation" : "Tap to open conversation"}</p>
                                             </div>
-
-                                            {activeId === conversation.id && (
-                                                <span className="h-2 w-2 rounded-full bg-[#F15A24]" />
-                                            )}
+                                            {activeId === conversation.id && <span className="h-2 w-2 shrink-0 rounded-full bg-[#F15A24]" />}
                                         </button>
                                     ))}
                                 </div>
                             )}
-                        </section>
+                        </div>
+                        <div className="border-t border-white/10 px-5 py-3 text-[11px] text-slate-500">A community that stays connected.</div>
+                    </aside>
 
-                        {activeConversation && (
-                            <section className="flex min-h-[430px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200/70">
-                                <div className="flex items-center gap-3 border-b border-gray-100 bg-[#0C2340] px-4 py-4 text-white">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold">
-                                        {activeConversation.displayTitle
-                                            .charAt(0)
-                                            .toUpperCase()}
+                    <section className={`min-h-[650px] flex-col bg-[#071522] ${mobileChatOpen ? "flex" : "hidden lg:flex"}`}>
+                        {activeConversation ? (
+                            <>
+                                <div className="flex items-center gap-3 border-b border-white/10 bg-[#0D2235] px-4 py-3.5 sm:px-6">
+                                    <button type="button" onClick={() => setMobileChatOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl text-slate-300 hover:bg-white/10 lg:hidden" aria-label="Back to conversations">‹</button>
+                                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-bold text-white ${activeConversation.is_group ? "bg-gradient-to-br from-[#F15A24] to-amber-500" : "bg-[#245276]"}`}>
+                                        {activeConversation.is_group ? "👥" : activeConversation.displayTitle.charAt(0).toUpperCase()}
                                     </div>
-
-                                    <div className="min-w-0">
-                                        <h2 className="font-bold">
-                                            {activeConversation.displayTitle}
-                                        </h2>
-
-                                        <p className="text-xs text-gray-300">
-                                            {activeConversation.is_group
-                                                ? `${activeGroupMembers.length} members in this group`
-                                                : "SEAConnect chat"}
-                                        </p>
-
-                                        {activeConversation.is_group && (
-                                            <div className="mt-2 flex flex-wrap gap-2">
-                                                {activeGroupMembers.map((member) => (
-                                                    <span
-                                                        key={member.id}
-                                                        className="rounded-full bg-white/10 px-2.5 py-1 text-xs text-white"
-                                                    >
-                                                        {member.full_name || "SEA Member"}
-                                                        {member.id === userId ? " (You)" : ""}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                    <div className="min-w-0 flex-1">
+                                        <h2 className="truncate font-extrabold text-white">{activeConversation.displayTitle}</h2>
+                                        <p className="mt-0.5 truncate text-xs text-slate-400">{activeConversation.is_group ? `${activeGroupMembers.length} members · Group conversation` : "SEAConnect member"}</p>
                                     </div>
+                                    <div className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-300 sm:block">SEAConnect</div>
                                 </div>
 
-                                <div className="flex-1 space-y-3 bg-[#F8FAFC] p-4">
+                                {activeConversation.is_group && (
+                                    <div className="flex flex-wrap gap-2 border-b border-white/[0.06] bg-[#0A1B2A] px-4 py-2.5 sm:px-6">
+                                        {activeGroupMembers.map((member) => (
+                                            <span key={member.id} className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[10px] text-slate-300">{member.full_name || "SEA Member"}{member.id === userId ? " · You" : ""}</span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#102B46] via-[#071522] to-[#071522] px-3 py-5 sm:px-6">
+                                    <div className="mx-auto mb-5 w-fit rounded-full border border-white/10 bg-[#102B46]/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Messages are part of the SEA community</div>
                                     {messages.length === 0 ? (
-                                        <div className="py-12 text-center">
-                                            <p className="text-2xl">💬</p>
-                                            <p className="mt-3 font-bold">
-                                                Say hello!
-                                            </p>
-                                            <p className="mt-1 text-sm text-gray-500">
-                                                Your conversation starts here.
-                                            </p>
+                                        <div className="flex h-full min-h-64 flex-col items-center justify-center text-center">
+                                            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-[#F15A24]/10 text-3xl">👋</div>
+                                            <p className="mt-4 font-bold text-white">Say hello!</p>
+                                            <p className="mt-1 max-w-xs text-sm text-slate-400">Start the conversation. Your SEA community is one message away.</p>
                                         </div>
                                     ) : (
-                                        messages.map((message) => {
+                                        messages.map((message, index) => {
                                             const mine = message.sender_id === userId;
-
+                                            const previous = messages[index - 1];
+                                            const showSender = activeConversation.is_group && !mine && (!previous || previous.sender_id !== message.sender_id);
+                                            const senderName = activeGroupMembers.find((member) => member.id === message.sender_id)?.full_name || "SEA Member";
                                             return (
-                                                <div
-                                                    key={message.id}
-                                                    className={`flex ${
-                                                        mine
-                                                            ? "justify-end"
-                                                            : "justify-start"
-                                                    }`}
-                                                >
-                                                    <div
-                                                        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                                                            mine
-                                                                ? "rounded-br-md bg-[#0C2340] text-white"
-                                                                : "rounded-bl-md border border-gray-100 bg-white text-[#0C2340]"
-                                                        }`}
-                                                    >
-                                                        <p className="whitespace-pre-wrap break-words text-sm leading-5">
-                                                            {message.content}
-                                                        </p>
-
-                                                        <p
-                                                            className={`mt-2 text-right text-[10px] ${
-                                                                mine
-                                                                    ? "text-gray-300"
-                                                                    : "text-gray-400"
-                                                            }`}
-                                                        >
-                                                            {new Date(
-                                                                message.created_at
-                                                            ).toLocaleTimeString([], {
-                                                                hour: "numeric",
-                                                                minute: "2-digit",
-                                                            })}
+                                                <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                                                    <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm sm:max-w-[75%] sm:px-4 ${mine ? "rounded-br-md bg-[#F15A24] text-white" : "rounded-bl-md border border-white/[0.07] bg-[#153653] text-slate-100"}`}>
+                                                        {showSender && <p className="mb-1 text-[10px] font-bold text-orange-300">{senderName}</p>}
+                                                        <p className="whitespace-pre-wrap break-words text-[13px] leading-5 sm:text-sm">{message.content}</p>
+                                                        <p className={`mt-1.5 text-right text-[10px] ${mine ? "text-orange-100/80" : "text-slate-400"}`}>
+                                                            {new Date(message.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                                                            {mine && <span className="ml-1.5 text-orange-100">✓</span>}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -913,35 +774,25 @@ export default function ChatPage() {
                                     )}
                                 </div>
 
-                                <form
-                                    onSubmit={sendMessage}
-                                    className="flex items-end gap-2 border-t border-gray-100 bg-white p-3"
-                                >
-                                    <textarea
-                                        value={messageText}
-                                        onChange={(event) =>
-                                            setMessageText(event.target.value)
-                                        }
-                                        placeholder="Write a message..."
-                                        rows={1}
-                                        maxLength={3000}
-                                        className="max-h-28 min-w-0 flex-1 resize-y rounded-xl border border-gray-200 px-3 py-3 text-sm outline-none focus:border-[#F15A24]"
-                                    />
-
-                                    <button
-                                        type="submit"
-                                        disabled={sending || !messageText.trim()}
-                                        className="rounded-xl bg-[#F15A24] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-                                    >
-                                        {sending ? "..." : "Send"}
-                                    </button>
+                                <form onSubmit={sendMessage} className="border-t border-white/10 bg-[#0D2235] p-3 sm:px-5 sm:py-4">
+                                    <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#071522] p-2 focus-within:border-[#F15A24]/70">
+                                        <textarea value={messageText} onChange={(event) => setMessageText(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="Write a message..." rows={1} maxLength={3000} className="max-h-32 min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-slate-500" />
+                                        <button type="submit" disabled={sending || !messageText.trim()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F15A24] text-lg font-bold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send message" title="Send message">{sending ? "…" : "➤"}</button>
+                                    </div>
+                                    <p className="mt-2 px-1 text-[10px] text-slate-500">Enter to send · Shift + Enter for a new line</p>
                                 </form>
-                            </section>
+                            </>
+                        ) : (
+                            <div className="hidden h-full min-h-[650px] flex-col items-center justify-center px-8 text-center lg:flex">
+                                <div className="flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-[#F15A24]/10 text-4xl">💬</div>
+                                <h2 className="mt-6 text-xl font-extrabold">Your SEA conversations</h2>
+                                <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">Choose a chat on the left or start a new conversation with someone in the SEA community.</p>
+                                <button type="button" onClick={() => setShowNewChat(true)} className="mt-5 rounded-xl bg-[#F15A24] px-5 py-3 text-sm font-bold text-white hover:bg-orange-500">＋ New message</button>
+                            </div>
                         )}
-                    </>
-                )}
+                    </section>
+                </section>
             </div>
-
             <BottomNav />
         </main>
     );
