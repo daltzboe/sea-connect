@@ -93,7 +93,7 @@ export default function DashboardSidebar({ fullName, isOfficer }: DashboardSideb
                     className="fixed inset-0 z-[75] bg-black/65 backdrop-blur-sm lg:hidden" />
             )}
 
-            <aside className="fixed inset-y-0 left-0 z-[80] hidden w-[272px] flex-col border-r border-white/10 bg-[#0A1E32] px-5 py-6 lg:flex">
+            <aside aria-label="Dashboard sidebar" className="fixed inset-y-0 left-0 z-[80] hidden w-[272px] flex-col border-r border-white/10 bg-[#0A1E32] px-5 py-6 lg:flex">
                 <Link href="/dashboard" className="flex items-center gap-3 px-2">
                     <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F15A24] text-2xl shadow-lg shadow-orange-950/30">🌍</span>
                     <span>
