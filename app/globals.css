@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #071522;
+  --foreground: #f8fafc;
+  --sea-navy: #071522;
+  --sea-surface: #102B46;
+  --sea-surface-raised: #153653;
+  --sea-orange: #F15A24;
+  --sea-muted: #9CAFC1;
 }
 
 @theme inline {
@@ -12,19 +18,99 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: var(--sea-navy);
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background: var(--sea-navy);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Shared SEAConnect page theme.
+   These utility overrides bring existing routes into the dashboard's
+   navy/orange visual system without changing their Supabase logic. */
+main.bg-gray-100,
+main.bg-\[\#F4F6F5\],
+main.bg-white {
+  background-color: var(--sea-navy) !important;
+  color: var(--foreground);
+}
+
+.bg-white {
+  background-color: var(--sea-surface) !important;
+}
+
+.bg-gray-50,
+.bg-gray-100,
+.bg-\[\#F4F6F5\] {
+  background-color: var(--sea-navy) !important;
+}
+
+.text-\[\#0C2340\],
+.text-gray-900,
+.text-gray-800,
+.text-gray-700 {
+  color: #F8FAFC !important;
+}
+
+.text-gray-600,
+.text-gray-500 {
+  color: #B8C7D6 !important;
+}
+
+.text-gray-400 {
+  color: #8FA4B8 !important;
+}
+
+.border-gray-100,
+.border-gray-200,
+.border-gray-300 {
+  border-color: rgb(255 255 255 / 12%) !important;
+}
+
+.shadow-sm,
+.shadow-md,
+.shadow-lg {
+  --tw-shadow-color: rgb(0 0 0 / 22%);
+}
+
+.bg-orange-50 {
+  background-color: rgb(241 90 36 / 14%) !important;
+}
+
+.bg-green-50 {
+  background-color: rgb(22 128 58 / 16%) !important;
+}
+
+.bg-red-50 {
+  background-color: rgb(220 38 38 / 14%) !important;
+}
+
+input,
+textarea,
+select {
+  color: #F8FAFC;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8FA4B8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline-color: var(--sea-orange);
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* Shared side navigation layout for authenticated pages. */
 @media (min-width: 1024px) {
