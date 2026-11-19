@@ -9,12 +9,14 @@ import BottomNav from "@/components/BottomNav";
 type Member = {
     id: string;
     full_name: string | null;
+    role?: "admin" | "member";
 };
 
 type Conversation = {
     id: string;
     title: string | null;
     is_group: boolean;
+    created_by: string;
     created_at: string;
     displayTitle: string;
 };
@@ -26,6 +28,8 @@ type Message = {
     content: string;
     created_at: string;
 };
+
+type MessageReceipt = { message_id: string; user_id: string; delivered_at: string | null; read_at: string | null; };
 
 export default function ChatPage() {
     const supabase = useMemo(
@@ -39,6 +43,10 @@ export default function ChatPage() {
     const [activeId, setActiveId] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [activeGroupMembers, setActiveGroupMembers] = useState<Member[]>([]);
+    const [messageReceipts, setMessageReceipts] = useState<MessageReceipt[]>([]);
+    const [showGroupSettings, setShowGroupSettings] = useState(false);
+    const [selectedAddMembers, setSelectedAddMembers] = useState<string[]>([]);
+    const [groupActionBusy, setGroupActionBusy] = useState(false);
     const [selectedMember, setSelectedMember] = useState("");
     const [groupTitle, setGroupTitle] = useState("");
     const [selectedGroupMembers, setSelectedGroupMembers] = useState<string[]>([]);
@@ -121,7 +129,7 @@ export default function ChatPage() {
                 ] = await Promise.all([
                     supabase
                         .from("conversations")
-                        .select("id, title, is_group, created_at")
+                        .select("id, title, is_group, created_by, created_at")
                         .in("id", conversationIds)
                         .order("created_at", { ascending: false }),
 
@@ -223,6 +231,7 @@ export default function ChatPage() {
     useEffect(() => {
         if (!activeId || !userId) {
             setMessages([]);
+            setMessageReceipts([]);
             setActiveGroupMembers([]);
             return;
         }
@@ -235,7 +244,7 @@ export default function ChatPage() {
                 error: participantError,
             } = await supabase
                 .from("conversation_members")
-                .select("user_id")
+                .select("user_id, role")
                 .eq("conversation_id", activeId);
 
             if (cancelled) return;
@@ -279,7 +288,8 @@ export default function ChatPage() {
                 return;
             }
 
-            setActiveGroupMembers((profiles ?? []) as Member[]);
+            const rolesById = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
+            setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: rolesById.get(member.id) ?? "member" })));
         }
 
         async function loadMessages() {
@@ -301,6 +311,13 @@ export default function ChatPage() {
             }
 
             setMessages((data ?? []) as Message[]);
+            const messageIds = (data ?? []).map((message) => message.id);
+            if (messageIds.length) {
+                const now = new Date().toISOString();
+                await supabase.from("message_receipts").update({ delivered_at: now, read_at: now }).eq("user_id", userId).in("message_id", messageIds).is("read_at", null);
+                const { data: receipts, error: receiptError } = await supabase.from("message_receipts").select("message_id, user_id, delivered_at, read_at").in("message_id", messageIds);
+                if (!receiptError && !cancelled) setMessageReceipts((receipts ?? []) as MessageReceipt[]);
+            } else { setMessageReceipts([]); }
         }
 
         void loadGroupMembers();
