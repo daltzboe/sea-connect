@@ -548,6 +548,63 @@ export default function ChatPage() {
         }
     }
 
+    const isActiveGroupAdmin = Boolean(activeConversation?.is_group && activeGroupMembers.some((member) => member.id === userId && member.role === "admin"));
+
+    async function refreshGroupMembers(conversationId: string) {
+        const { data: participantRows, error: participantError } = await supabase.from("conversation_members").select("user_id, role").eq("conversation_id", conversationId);
+        if (participantError) throw participantError;
+        const ids = (participantRows ?? []).map((row) => row.user_id);
+        const { data: profiles, error: profileError } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        if (profileError) throw profileError;
+        const roles = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
+        setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: roles.get(member.id) ?? "member" })));
+    }
+
+    async function addGroupMembers() {
+        if (!activeConversation || !isActiveGroupAdmin || selectedAddMembers.length === 0) return;
+        setGroupActionBusy(true); setError("");
+        try {
+            const { error: insertError } = await supabase.from("conversation_members").insert(selectedAddMembers.map((id) => ({ conversation_id: activeConversation.id, user_id: id })));
+            if (insertError) throw insertError;
+            await refreshGroupMembers(activeConversation.id); setSelectedAddMembers([]);
+        } catch (err) { console.error(err); setError("Could not add those members. Please try again."); }
+        finally { setGroupActionBusy(false); }
+    }
+
+    async function removeGroupMember(memberId: string) {
+        if (!activeConversation || !isActiveGroupAdmin || memberId === userId) return;
+        if (!window.confirm("Remove this member from the group?")) return;
+        setGroupActionBusy(true); setError("");
+        try {
+            const { error: deleteError } = await supabase.from("conversation_members").delete().eq("conversation_id", activeConversation.id).eq("user_id", memberId);
+            if (deleteError) throw deleteError; await refreshGroupMembers(activeConversation.id);
+        } catch (err) { console.error(err); setError("Could not remove that member."); }
+        finally { setGroupActionBusy(false); }
+    }
+
+    async function toggleGroupAdmin(member: Member) {
+        if (!activeConversation || !isActiveGroupAdmin || member.id === userId) return;
+        const nextRole = member.role === "admin" ? "member" : "admin";
+        setGroupActionBusy(true); setError("");
+        try {
+            const { error: updateError } = await supabase.from("conversation_members").update({ role: nextRole }).eq("conversation_id", activeConversation.id).eq("user_id", member.id);
+            if (updateError) throw updateError; await refreshGroupMembers(activeConversation.id);
+        } catch (err) { console.error(err); setError("Could not update this member's group role."); }
+        finally { setGroupActionBusy(false); }
+    }
+
+    async function leaveGroup() {
+        if (!activeConversation?.is_group) return;
+        if (!window.confirm("Leave this group? You will no longer receive its messages.")) return;
+        setGroupActionBusy(true); setError("");
+        try {
+            const { error: leaveError } = await supabase.from("conversation_members").delete().eq("conversation_id", activeConversation.id).eq("user_id", userId);
+            if (leaveError) throw leaveError;
+            setConversations((current) => current.filter((conversation) => conversation.id !== activeConversation.id));
+            setActiveId(""); setMobileChatOpen(false); setShowGroupSettings(false); setActiveGroupMembers([]); setMessages([]);
+        } catch (err) { console.error(err); setError("Could not leave this group. Please try again."); }
+        finally { setGroupActionBusy(false); }
+    }
     async function sendMessage(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
