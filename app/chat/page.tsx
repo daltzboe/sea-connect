@@ -351,9 +351,22 @@ export default function ChatPage() {
             )
             .subscribe();
 
+        const receiptChannel = supabase
+            .channel("chat-receipts-" + activeId)
+            .on("postgres_changes", { event: "*", schema: "public", table: "message_receipts" }, (payload) => {
+                const changed = (payload.new ?? payload.old) as MessageReceipt;
+                if (!changed?.message_id) return;
+                setMessageReceipts((current) => {
+                    const remaining = current.filter((item) => !(item.message_id === changed.message_id && item.user_id === changed.user_id));
+                    return payload.eventType === "DELETE" ? remaining : [...remaining, changed];
+                });
+            })
+            .subscribe();
+
         return () => {
             cancelled = true;
             void supabase.removeChannel(channel);
+            void supabase.removeChannel(receiptChannel);
         };
     }, [activeId, userId, supabase]);
 
@@ -858,7 +871,15 @@ export default function ChatPage() {
                                                         <p className="whitespace-pre-wrap break-words text-[13px] leading-5 sm:text-sm">{message.content}</p>
                                                         <p className={`mt-1.5 text-right text-[10px] ${mine ? "text-orange-100/80" : "text-slate-400"}`}>
                                                             {new Date(message.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                                                            {mine && <span className="ml-1.5 text-orange-100">✓</span>}
+                                                            {mine && (() => {
+                                                                const receipts = messageReceipts.filter((receipt) => receipt.message_id === message.id);
+                                                                const totalRecipients = Math.max(0, activeGroupMembers.length - 1);
+                                                                const deliveredCount = receipts.filter((receipt) => receipt.delivered_at).length;
+                                                                const readCount = receipts.filter((receipt) => receipt.read_at).length;
+                                                                const allRead = totalRecipients > 0 && readCount >= totalRecipients;
+                                                                const allDelivered = totalRecipients > 0 && deliveredCount >= totalRecipients;
+                                                                return <span className={"ml-1.5 " + (allRead ? "text-sky-300" : "text-orange-100/80")} title={activeConversation.is_group ? readCount + "/" + totalRecipients + " read" : allRead ? "Read" : allDelivered ? "Delivered" : "Sent"}>{allDelivered || allRead ? "✓✓" : "✓"}{activeConversation.is_group && totalRecipients > 1 && readCount > 0 ? <span className="ml-1 text-[9px]">{readCount}/{totalRecipients}</span> : null}</span>;
+                                                            })()}
                                                         </p>
                                                     </div>
                                                 </div>
