@@ -17,6 +17,8 @@ create table if not exists public.event_rsvps (
 
 create index if not exists event_rsvps_event_status_idx
   on public.event_rsvps (event_id, status);
+create index if not exists event_rsvps_user_id_idx
+  on public.event_rsvps (user_id);
 
 alter table public.event_rsvps enable row level security;
 revoke all on public.event_rsvps from anon;
