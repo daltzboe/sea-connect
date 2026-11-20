@@ -143,6 +143,24 @@ export default async function AdminPage() {
                         </p>
                     </Link>
 
+                    {/* School Membership Requests */}
+                    <Link
+                        href="/admin/school-memberships"
+                        className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                    >
+                        <div className="text-3xl">
+                            🎓
+                        </div>
+
+                        <h2 className="mt-3 font-bold">
+                            School Requests
+                        </h2>
+
+                        <p className="mt-1 text-sm text-gray-500">
+                            Review campus membership requests
+                        </p>
+                    </Link>
+
                 </div>
 
                 {/* Admin Notice */}
