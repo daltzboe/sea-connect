@@ -53,6 +53,19 @@ export default async function AdminPage() {
 
                 <div className="grid grid-cols-2 gap-4">
 
+                    {isPlatformAdmin && (
+                        <Link
+                            href="/admin/schools"
+                            className="col-span-2 rounded-2xl bg-[#0C2340] p-5 text-white shadow-sm transition hover:shadow-md"
+                        >
+                            <div className="text-3xl">🌐</div>
+                            <h2 className="mt-3 font-bold">Global School Directory</h2>
+                            <p className="mt-1 text-sm text-slate-300">
+                                View campuses and membership totals across SEAConnect.
+                            </p>
+                        </Link>
+                    )}
+
                     {/* Users */}
                     <Link
                         href="/admin/users"
