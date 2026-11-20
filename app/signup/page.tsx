@@ -153,6 +153,29 @@ export default function SignUp() {
             return;
         }
 
+        if (data.user && data.session) {
+            const [{ data: createdProfile, error: profileError }, { data: membership, error: membershipError }] = await Promise.all([
+                supabase
+                    .from("profiles")
+                    .select("primary_school_id")
+                    .eq("id", data.user.id)
+                    .maybeSingle(),
+                supabase
+                    .from("school_memberships")
+                    .select("id")
+                    .eq("user_id", data.user.id)
+                    .eq("school_id", schoolId)
+                    .eq("status", "active")
+                    .maybeSingle(),
+            ]);
+
+            if (profileError || membershipError || createdProfile?.primary_school_id !== schoolId || !membership) {
+                setLoading(false);
+                setError("Your account was created, but we couldn't confirm your campus membership. Please sign in again or contact support.");
+                return;
+            }
+        }
+
         setLoading(false);
 
         if (data.user && !data.session) {
