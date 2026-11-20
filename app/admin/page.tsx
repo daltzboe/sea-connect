@@ -7,7 +7,7 @@ export default async function AdminPage() {
 
     if (!user) redirect("/signin");
 
-    if (isPlatformAdmin) {
+    if (isPlatformAdmin && !profile?.primary_school_id) {
         redirect("/admin/schools");
     }
 
