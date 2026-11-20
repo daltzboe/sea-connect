@@ -16,12 +16,20 @@ export default async function AdminUsersPage() {
 
     const supabase = await createSupabaseServerClient();
 
-    const { data: users, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("full_name", {
-            ascending: true,
-        });
+    const { data: campusMemberships } = await supabase
+        .from("school_memberships")
+        .select("user_id")
+        .eq("school_id", profile.primary_school_id!);
+
+    const campusUserIds = [...new Set((campusMemberships ?? []).map((membership) => membership.user_id))];
+
+    const { data: users, error } = campusUserIds.length
+        ? await supabase
+            .from("profiles")
+            .select("*")
+            .in("id", campusUserIds)
+            .order("full_name", { ascending: true })
+        : { data: [], error: null };
 
     return (
         <main className="min-h-screen bg-gray-100 pb-10 text-[#0C2340]">
