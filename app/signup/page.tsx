@@ -157,13 +157,13 @@ export default function SignUp() {
 
         if (data.user && !data.session) {
             setMessage(
-                "Account created! Check your email to confirm your account. Your school membership will then be reviewed by an SEA officer."
+                "Account created! Check your email to confirm your address. Your selected school membership is activated automatically."
             );
 
             return;
         }
 
-        router.replace("/pending-approval");
+        router.replace("/dashboard");
     }
 
     return (
@@ -211,7 +211,7 @@ export default function SignUp() {
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
                         Create your account and connect with
-                        Students of East Africa at your university.
+                        Students of East Africa at your university. Choose your school and join instantly.
                     </p>
 
                 </div>
