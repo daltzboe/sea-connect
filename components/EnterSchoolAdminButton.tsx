@@ -19,7 +19,7 @@ export default function EnterSchoolAdminButton({ schoolId }: { schoolId: string 
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Could not open campus.");
-            router.push("/admin");
+            router.push("/dashboard");
             router.refresh();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not open campus.");
@@ -35,7 +35,7 @@ export default function EnterSchoolAdminButton({ schoolId }: { schoolId: string 
                 disabled={loading}
                 className="rounded-xl bg-[#F15A24] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600 disabled:opacity-60"
             >
-                {loading ? "Opening..." : "Open as Officer →"}
+                {loading ? "Opening..." : "View school dashboard →"}
             </button>
             {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
         </div>
