@@ -29,8 +29,11 @@ export async function getCurrentProfile() {
         };
     }
 
+    const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin");
+
     return {
         user,
         profile,
+        isPlatformAdmin: Boolean(isPlatformAdmin),
     };
 }
