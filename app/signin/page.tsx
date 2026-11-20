@@ -56,9 +56,32 @@ export default function SignIn() {
             return;
         }
 
-        // Supabase stores the session in the browser.
-        // Returning users will remain signed in.
-        router.replace("/dashboard");
+        // Existing UTSA members were migrated with active memberships.
+        // New students remain signed in but wait for school officer approval.
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            setLoading(false);
+            setError("We couldn't verify your account. Please sign in again.");
+            return;
+        }
+
+        const { data: membership, error: membershipError } = await supabase
+            .from("school_memberships")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .limit(1)
+            .maybeSingle();
+
+        setLoading(false);
+
+        if (membershipError) {
+            setError("We couldn't verify your school membership. Please try again.");
+            return;
+        }
+
+        router.replace(membership ? "/dashboard" : "/pending-approval");
     }
 
     return (
@@ -106,7 +129,7 @@ export default function SignIn() {
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
                         Sign in to stay connected with the
-                        Students of East Africa at UTSA.
+                        Students of East Africa at your university.
                     </p>
 
                 </div>
@@ -229,7 +252,7 @@ export default function SignIn() {
 
                 {/* Footer */}
                 <div className="mt-auto pt-8 text-center text-xs text-gray-500">
-                    Students of East Africa • UTSA
+                    Students of East Africa • Campus communities
                 </div>
 
             </div>
