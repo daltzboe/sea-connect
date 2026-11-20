@@ -5,8 +5,14 @@ import { supabase } from "@/lib/supabase";
 
 const SchoolNameContext = createContext("your campus");
 
-export default function SchoolProvider({ children }: { children: ReactNode }) {
-    const [schoolName, setSchoolName] = useState("your campus");
+export default function SchoolProvider({
+    children,
+    initialSchoolName,
+}: {
+    children: ReactNode;
+    initialSchoolName?: string | null;
+}) {
+    const [schoolName, setSchoolName] = useState(initialSchoolName || "your campus");
 
     useEffect(() => {
         let active = true;
@@ -15,6 +21,13 @@ export default function SchoolProvider({ children }: { children: ReactNode }) {
             if (active) setSchoolName("your campus");
             if (!userId) {
                 if (active) setSchoolName("your campus");
+                return;
+            }
+
+            // Platform Admin campus previews use a server-validated HTTP-only cookie.
+            // Keep that campus label instead of the admin account's own null school ID.
+            if (initialSchoolName) {
+                if (active) setSchoolName(initialSchoolName);
                 return;
             }
 
