@@ -60,18 +60,22 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isProtectedRoute && user) {
-        const { data: membership, error: membershipError } = await supabase
-            .from("school_memberships")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("status", "active")
-            .limit(1)
-            .maybeSingle();
+        const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin");
 
-        if (membershipError || !membership) {
-            return NextResponse.redirect(
-                new URL("/pending-approval", request.url)
-            );
+        if (!isPlatformAdmin) {
+            const { data: membership, error: membershipError } = await supabase
+                .from("school_memberships")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("status", "active")
+                .limit(1)
+                .maybeSingle();
+
+            if (membershipError || !membership) {
+                return NextResponse.redirect(
+                    new URL("/signup?school=required", request.url)
+                );
+            }
         }
     }
 
