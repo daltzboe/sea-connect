@@ -12,6 +12,7 @@ export default function SchoolProvider({ children }: { children: ReactNode }) {
         let active = true;
 
         async function loadSchool(userId: string | null) {
+            if (active) setSchoolName("your campus");
             if (!userId) {
                 if (active) setSchoolName("your campus");
                 return;
@@ -42,7 +43,7 @@ export default function SchoolProvider({ children }: { children: ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (_event, session) => {
-                void loadSchool(session?.user.id ?? null);
+                void Promise.resolve().then(() => loadSchool(session?.user.id ?? null));
             }
         );
 
@@ -60,7 +61,8 @@ export default function SchoolProvider({ children }: { children: ReactNode }) {
 }
 
 export function SchoolShortName() {
-    return <>{useContext(SchoolNameContext)}</>;
+    const schoolName = useContext(SchoolNameContext);
+    return <>{schoolName}</>;
 }
 
 export function useSchoolShortName() {
