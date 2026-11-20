@@ -22,7 +22,7 @@ export async function POST(request: Request) {
             );
         }
 
-        if (profile?.role !== "officer") {
+        if (profile?.role !== "officer" || !profile.primary_school_id) {
             return NextResponse.json(
                 { error: "Forbidden" },
                 { status: 403 }
@@ -159,14 +159,30 @@ export async function POST(request: Request) {
 
         eventCreated = true;
 
-        // Find members who have push subscriptions.
+        // Find active members of this campus who have push subscriptions.
+        const { data: campusMemberships, error: membershipError } = await supabase
+            .from("school_memberships")
+            .select("user_id")
+            .eq("school_id", event.school_id)
+            .eq("status", "active");
+
+        if (membershipError) {
+            console.error("Could not load campus memberships:", membershipError.message);
+        }
+
+        const campusUserIds = (campusMemberships ?? [])
+            .map((membership) => membership.user_id)
+            .filter((userId) => userId !== user.id);
+
         const {
             data: subscriptions,
             error: subscriptionError,
-        } = await supabase
-            .from("push_subscriptions")
-            .select("user_id")
-            .neq("user_id", user.id);
+        } = campusUserIds.length > 0
+            ? await supabase
+                .from("push_subscriptions")
+                .select("user_id")
+                .in("user_id", campusUserIds)
+            : { data: [], error: null };
 
         if (subscriptionError) {
             console.error(
@@ -182,29 +198,6 @@ export async function POST(request: Request) {
                 )
             ),
         ];
-
-        // Create in-app notifications.
-        if (userIds.length > 0) {
-            const notifications = userIds.map((userId) => ({
-                user_id: userId,
-                title: "New Event",
-                message: title.trim(),
-                type: "event",
-                link: `/events/${event.id}`,
-                is_read: false,
-            }));
-
-            const { error: notificationError } = await supabase
-                .from("notifications")
-                .insert(notifications);
-
-            if (notificationError) {
-                console.error(
-                    "Could not create notifications:",
-                    notificationError.message
-                );
-            }
-        }
 
         // Send push notifications without failing event creation.
         for (const userId of userIds) {
