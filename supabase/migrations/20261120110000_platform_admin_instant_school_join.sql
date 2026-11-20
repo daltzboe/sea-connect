@@ -42,9 +42,9 @@ create or replace function public.is_platform_admin()
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = ''
-as $$
+as $
   select private.is_platform_admin();
 $$;
 revoke all on function public.is_platform_admin() from public, anon;
