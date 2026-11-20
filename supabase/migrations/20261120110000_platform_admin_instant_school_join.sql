@@ -53,7 +53,7 @@ grant execute on function public.is_platform_admin() to authenticated;
 drop policy if exists "Listed schools are visible" on public.schools;
 create policy "Listed schools are visible"
 on public.schools for select to anon, authenticated
-using (is_listed = true or private.is_platform_admin());
+using (is_listed = true);
 
 drop policy if exists "Platform admins can manage schools" on public.schools;
 create policy "Platform admins can manage schools"
