@@ -15,25 +15,45 @@ declare global {
     }
 }
 
-const QR_SCRIPT = "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js";
+const QR_SCRIPTS = [
+    "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js",
+    "https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js",
+];
 
-function loadQrLibrary() {
-    return new Promise<void>((resolve, reject) => {
-        if (window.QRCode) return resolve();
-        const existing = document.querySelector<HTMLScriptElement>(`script[src="${QR_SCRIPT}"]`);
-        if (existing) {
-            existing.addEventListener("load", () => resolve(), { once: true });
-            existing.addEventListener("error", () => reject(new Error("Could not load QR display.")), { once: true });
-            if (window.QRCode) resolve();
-            return;
-        }
+function loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = QR_SCRIPT;
+        script.src = src;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Could not load QR display."));
+        script.onload = () => {
+            if (window.QRCode?.toCanvas) resolve();
+            else {
+                script.remove();
+                reject(new Error("QR library loaded without its browser API."));
+            }
+        };
+        script.onerror = () => {
+            script.remove();
+            reject(new Error("QR library source could not be reached."));
+        };
         document.head.appendChild(script);
     });
+}
+
+async function loadQrLibrary(): Promise<void> {
+    if (window.QRCode?.toCanvas) return;
+
+    let lastError: unknown;
+    for (const src of QR_SCRIPTS) {
+        try {
+            await loadScript(src);
+            return;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error("Could not load QR display.");
 }
 
 export default function EventTicketQr({ ticketCode }: { ticketCode: string }) {
@@ -42,22 +62,32 @@ export default function EventTicketQr({ ticketCode }: { ticketCode: string }) {
 
     useEffect(() => {
         let cancelled = false;
+        setError("");
+
         loadQrLibrary()
             .then(() => {
-                if (cancelled || !canvasRef.current || !window.QRCode) return;
+                if (cancelled || !canvasRef.current || !window.QRCode?.toCanvas) return;
                 window.QRCode.toCanvas(
                     canvasRef.current,
                     ticketCode,
                     { width: 280, margin: 2, errorCorrectionLevel: "M" },
                     (qrError) => {
-                        if (qrError && !cancelled) setError("Unable to render your QR code. You can use the ticket code below.");
+                        if (cancelled) return;
+                        if (qrError) {
+                            setError("Unable to render your QR code. You can use the ticket code below.");
+                        }
                     }
                 );
             })
             .catch(() => {
-                if (!cancelled) setError("Unable to load the QR display. You can use the ticket code below.");
+                if (!cancelled) {
+                    setError("Unable to load the QR display. You can use the ticket code below.");
+                }
             });
-        return () => { cancelled = true; };
+
+        return () => {
+            cancelled = true;
+        };
     }, [ticketCode]);
 
     return (
