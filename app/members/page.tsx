@@ -3,13 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function MembersPage() {
+    const { user, profile } = await getCurrentProfile();
     const supabase = await createSupabaseServerClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
 
     if (!user) {
         redirect("/signin");
@@ -18,6 +16,7 @@ export default async function MembersPage() {
     const { data: members, error } = await supabase
         .from("members")
         .select("*")
+        .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
         .order("full_name", { ascending: true });
 
     return (
