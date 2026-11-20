@@ -69,8 +69,12 @@ on public.school_memberships for select to authenticated
 using (private.is_platform_admin());
 
 drop policy if exists "School officers can review pending memberships" on public.school_memberships;
-revoke update on public.school_memberships from authenticated;
-grant select on public.school_memberships to authenticated;
+drop policy if exists "Platform admins can manage school memberships" on public.school_memberships;
+create policy "Platform admins can manage school memberships"
+on public.school_memberships for all to authenticated
+using (private.is_platform_admin())
+with check (private.is_platform_admin());
+grant select, insert, update, delete on public.school_memberships to authenticated;
 
 drop trigger if exists guard_school_membership_review on public.school_memberships;
 
