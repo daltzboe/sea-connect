@@ -11,7 +11,6 @@ type School = {
     state: string | null;
     country: string;
     school_type: string;
-    community_enabled: boolean;
     slug: string;
 };
 
@@ -36,7 +35,7 @@ export default function SchoolSelector({
         async function loadSchools() {
             const { data, error: queryError } = await supabase
                 .from("schools")
-                .select("id,name,short_name,city,state,country,school_type,community_enabled,slug")
+                .select("id,name,short_name,city,state,country,school_type,slug")
                 .eq("is_listed", true)
                 .order("name");
 
@@ -152,7 +151,6 @@ export default function SchoolSelector({
                                                 : school.country !== "United States"
                                                     ? ` · ${school.country}`
                                                     : ""}
-                                            {!school.community_enabled ? " · Community onboarding soon" : ""}
                                         </span>
                                     </span>
                                     {value === school.id && (
