@@ -211,30 +211,14 @@ export default async function ManageUserPage({ params }: PageProps) {
                         action={async (formData) => {
                             "use server";
 
-                            const supabase =
-                                await createSupabaseServerClient();
+                            const { user: currentUser, profile: currentProfile } = await getCurrentProfile();
 
-                            const {
-                                data: {
-                                    user: currentUser,
-                                },
-                            } = await supabase.auth.getUser();
-
-                            if (!currentUser) {
-                                redirect("/signin");
-                            }
-
-                            // Verify current user is an officer
-                            const { data: currentProfile } =
-                                await supabase
-                                    .from("profiles")
-                                    .select("role")
-                                    .eq("id", currentUser.id)
-                                    .single();
-
-                            if (currentProfile?.role !== "officer") {
+                            if (!currentUser) redirect("/signin");
+                            if (currentProfile?.role !== "officer" || !currentProfile.primary_school_id) {
                                 redirect("/dashboard");
                             }
+
+                            const supabase = await createSupabaseServerClient();
 
                             const fullName =
                                 String(formData.get("full_name") || "").trim();
