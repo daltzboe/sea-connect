@@ -94,6 +94,18 @@ export default async function AdminEventsPage() {
                                 >
                                     Edit
                                 </Link>
+                                <Link
+                                    href={`/admin/events/${event.id}/check-in`}
+                                    className="flex-1 rounded-xl bg-[#F15A24] px-4 py-3 text-center text-sm font-semibold text-white"
+                                >
+                                    Check-In
+                                </Link>
+                                <Link
+                                    href={`/admin/events/${event.id}/attendees`}
+                                    className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-[#0C2340]"
+                                >
+                                    Attendees
+                                </Link>
 
                                 <DeleteEventButton eventId={event.id} />
 
