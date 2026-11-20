@@ -19,6 +19,7 @@ export default async function AdminMembersPage() {
     const { data: members, error } = await supabase
         .from("members")
         .select("*")
+        .eq("school_id", profile.primary_school_id!)
         .order("full_name", { ascending: true });
 
     return (
