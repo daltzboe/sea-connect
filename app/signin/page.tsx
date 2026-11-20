@@ -56,13 +56,18 @@ export default function SignIn() {
             return;
         }
 
-        // Existing UTSA members were migrated with active memberships.
-        // New students remain signed in but wait for school officer approval.
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
             setLoading(false);
             setError("We couldn't verify your account. Please sign in again.");
+            return;
+        }
+
+        const { data: isPlatformAdmin } = await supabase.rpc("is_platform_admin");
+        if (isPlatformAdmin) {
+            setLoading(false);
+            router.replace("/admin");
             return;
         }
 
@@ -81,7 +86,7 @@ export default function SignIn() {
             return;
         }
 
-        router.replace(membership ? "/dashboard" : "/pending-approval");
+        router.replace(membership ? "/dashboard" : "/signup?school=required");
     }
 
     return (
