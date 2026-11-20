@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
@@ -344,7 +345,7 @@ export default async function ProfilePage() {
                     </p>
 
                     <p className="mt-1 text-xs text-gray-400">
-                        Students of East Africa • UTSA
+                        Students of East Africa • <SchoolShortName />
                     </p>
 
                 </div>
