@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import EnterSchoolAdminButton from "@/components/EnterSchoolAdminButton";
 
 type PageProps = { params: Promise<{ schoolId: string }> };
 type MembershipRow = { user_id: string; status: string; role: string; requested_at: string };
@@ -92,6 +93,11 @@ export default async function SchoolAdminDashboard({ params }: PageProps) {
                         <p className="mt-2 text-sm text-slate-300">{school.short_name}{school.city ? ` · ${school.city}` : ""}{school.state ? `, ${school.state}` : ""}{school.country ? ` · ${school.country}` : ""}</p>
                     </div>
                     <span className={school.community_enabled ? "w-fit rounded-full bg-emerald-300/10 px-4 py-2 text-sm text-emerald-200" : "w-fit rounded-full bg-amber-300/10 px-4 py-2 text-sm text-amber-200"}>{school.community_enabled ? "Community live" : "Campus not launched"}</span>
+                </div>
+
+                <div className="mt-6">
+                    <EnterSchoolAdminButton schoolId={schoolId} />
+                    <p className="mt-2 text-xs text-slate-400">Opens the full campus admin workspace using your Global Platform Admin account.</p>
                 </div>
 
                 <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
