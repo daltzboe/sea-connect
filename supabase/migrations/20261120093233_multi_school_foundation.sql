@@ -129,7 +129,7 @@ values
 ('Louisiana State University','LSU','lsu','Baton Rouge','Louisiana','United States','university',false),
 ('University of Alabama','UA','ua','Tuscaloosa','Alabama','United States','university',false),
 ('Auburn University','Auburn','auburn','Auburn','Alabama','United States','university',false),
-('University of Tennessee','UTK','utk','Knoxville','Tennessee','United States','university',false)
+('University of Tennessee','UTK','utk','Knoxville','Tennessee','United States','university',false),
 ('Howard University','Howard','howard','Washington','District of Columbia','United States','university',false),
 ('North Carolina A&T State University','NC A&T','nc-at','Greensboro','North Carolina','United States','university',false),
 ('Florida A&M University','FAMU','famu','Tallahassee','Florida','United States','university',false),
