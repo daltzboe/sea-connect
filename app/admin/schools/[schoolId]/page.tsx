@@ -97,7 +97,7 @@ export default async function SchoolAdminDashboard({ params }: PageProps) {
 
                 <div className="mt-6">
                     <EnterSchoolAdminButton schoolId={schoolId} />
-                    <p className="mt-2 text-xs text-slate-400">Opens the full campus admin workspace using your Global Platform Admin account.</p>
+                    <p className="mt-2 text-xs text-slate-400">Opens the campus member dashboard. From there, use the normal navigation to explore campus features and officer tools.</p>
                 </div>
 
                 <section className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
