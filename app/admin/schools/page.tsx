@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import EnterSchoolAdminButton from "@/components/EnterSchoolAdminButton";
 
 type SchoolRow = {
     id: string;
@@ -23,7 +24,7 @@ export default async function GlobalSchoolDirectoryPage() {
 
     const supabase = await createSupabaseServerClient();
     const [schoolResult, membershipResult] = await Promise.all([
-        supabase.from("schools").select("id,name,short_name,city,state,country,community_enabled,is_listed").order("name"),
+        supabase.from("schools").select("id,name,short_name,city,state,country,community_enabled,is_listed").eq("is_listed", true).order("name"),
         supabase.from("school_memberships").select("school_id,status"),
     ]);
 
@@ -60,7 +61,7 @@ export default async function GlobalSchoolDirectoryPage() {
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {schools.map((school) => (
-                        <Link key={school.id} href={`/admin/schools/${school.id}`} className="group rounded-2xl border border-white/10 bg-[#102B46] p-5 transition hover:border-[#F4C430]/60 hover:bg-[#153653]">
+                        <div key={school.id} className="rounded-2xl border border-white/10 bg-[#102B46] p-5 transition hover:border-[#F4C430]/40">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="font-bold group-hover:text-[#F4C430]">{school.name}</p>
@@ -70,9 +71,12 @@ export default async function GlobalSchoolDirectoryPage() {
                             </div>
                             <div className="mt-4 flex items-center justify-between">
                                 <span className={school.community_enabled ? "rounded-full bg-emerald-300/10 px-3 py-1.5 text-xs text-emerald-200" : "rounded-full bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200"}>{school.community_enabled ? "Community live" : "Not launched"}</span>
-                                <span className="text-sm font-semibold text-[#F4C430]">Open dashboard →</span>
+                                <Link href={`/admin/schools/${school.id}`} className="text-sm font-semibold text-slate-200 hover:text-white">View overview</Link>
                             </div>
-                        </Link>
+                            <div className="mt-4 border-t border-white/10 pt-4">
+                                <EnterSchoolAdminButton schoolId={school.id} />
+                            </div>
+                        </div>
                     ))}
                 </div>
             </div>
