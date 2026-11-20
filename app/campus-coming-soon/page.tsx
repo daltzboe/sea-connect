@@ -46,10 +46,10 @@ export default async function CampusComingSoonPage() {
                     </p>
                 )}
                 <Link
-                    href="/profile"
+                    href="/"
                     className="mt-7 inline-flex rounded-xl bg-[#F15A24] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#df4d1b]"
                 >
-                    View my profile
+                    Return to SEAConnect
                 </Link>
             </section>
         </main>
