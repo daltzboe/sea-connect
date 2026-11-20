@@ -91,31 +91,7 @@ export async function POST(request: Request) {
             .map((membership) => membership.user_id)
             .filter((userId) => userId !== user.id);
 
-        const {
-            data: subscriptions,
-            error: subscriptionError,
-        } = campusUserIds.length > 0
-            ? await supabase
-                .from("push_subscriptions")
-                .select("user_id")
-                .in("user_id", campusUserIds)
-            : { data: [], error: null };
-
-        if (subscriptionError) {
-            console.error(
-                "Could not load push subscriptions:",
-                subscriptionError.message
-            );
-        }
-
-        const userIds = [
-            ...new Set(
-                (subscriptions ?? []).map(
-                    (subscription) =>
-                        subscription.user_id
-                )
-            ),
-        ];
+        const userIds = campusUserIds;
 
         // Send browser/device push notifications.
         for (const userId of userIds) {
