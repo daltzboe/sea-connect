@@ -64,9 +64,6 @@ grant select on public.schools to anon, authenticated;
 grant insert, update, delete on public.schools to authenticated;
 
 drop policy if exists "Platform admins can view all school memberships" on public.school_memberships;
-create policy "Platform admins can view all school memberships"
-on public.school_memberships for select to authenticated
-using (private.is_platform_admin());
 
 drop policy if exists "School officers can review pending memberships" on public.school_memberships;
 drop policy if exists "Platform admins can manage school memberships" on public.school_memberships;
