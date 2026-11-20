@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import EnterSchoolAdminButton from "@/components/EnterSchoolAdminButton";
@@ -46,7 +45,7 @@ export default async function GlobalSchoolDirectoryPage() {
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#F4C430]">SEAConnect · Global Platform Admin</p>
                 <h1 className="mt-2 text-3xl font-black sm:text-4xl">Global School Directory</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                    Your account is platform-wide and is not assigned to a campus. Choose any school to open its administration overview.
+                    Your account is platform-wide and is not assigned to a campus. Choose a school to enter its campus experience and navigate the same dashboard members use.
                 </p>
 
                 <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -71,7 +70,7 @@ export default async function GlobalSchoolDirectoryPage() {
                             </div>
                             <div className="mt-4 flex items-center justify-between">
                                 <span className={school.community_enabled ? "rounded-full bg-emerald-300/10 px-3 py-1.5 text-xs text-emerald-200" : "rounded-full bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200"}>{school.community_enabled ? "Community live" : "Not launched"}</span>
-                                <Link href={`/admin/schools/${school.id}`} className="text-sm font-semibold text-slate-200 hover:text-white">View overview</Link>
+                                <span className="text-xs font-semibold text-slate-300">Campus dashboard</span>
                             </div>
                             <div className="mt-4 border-t border-white/10 pt-4">
                                 <EnterSchoolAdminButton schoolId={school.id} />
