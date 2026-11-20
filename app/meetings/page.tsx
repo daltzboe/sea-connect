@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
@@ -239,7 +240,7 @@ export default async function MeetingsPage() {
                             </p>
 
                             <p className="mt-1 text-xs text-gray-400">
-                                Students of East Africa • UTSA
+                                Students of East Africa • <SchoolShortName />
                             </p>
 
                         </div>
