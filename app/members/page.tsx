@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -50,7 +51,7 @@ export default async function MembersPage() {
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
                         Meet the students who make up the
-                        Students of East Africa community at UTSA.
+                        Students of East Africa community at <SchoolShortName />.
                     </p>
 
                     <div className="mt-5 flex gap-2 text-xl">
@@ -250,7 +251,7 @@ export default async function MembersPage() {
                                 </h3>
 
                                 <p className="mt-2 text-xs leading-5 text-gray-400">
-                                    Students of East Africa • UTSA
+                                    Students of East Africa • <SchoolShortName />
                                 </p>
 
                             </div>
