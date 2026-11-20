@@ -69,6 +69,17 @@ export default async function SchoolAdminDashboard({ params }: PageProps) {
         : { data: [] as ProfileRow[] };
     const profileById = new Map(((profiles ?? []) as ProfileRow[]).map((profile) => [profile.id, profile]));
     const chats = (chatActivity ?? []) as ChatActivityRow[];
+    const eventIds = (events ?? []).map((event) => event.id);
+    const [{ data: rsvps }, { data: checkins }] = eventIds.length
+        ? await Promise.all([
+            supabase.from("event_rsvps").select("event_id,status").in("event_id", eventIds),
+            supabase.from("event_checkins").select("event_id").in("event_id", eventIds),
+        ])
+        : [{ data: [] as { event_id: string; status: string }[] }, { data: [] as { event_id: string }[] }];
+    const rsvpCounts = new Map<string, number>();
+    const checkinCounts = new Map<string, number>();
+    for (const rsvp of rsvps ?? []) rsvpCounts.set(rsvp.event_id, (rsvpCounts.get(rsvp.event_id) ?? 0) + 1);
+    for (const checkin of checkins ?? []) checkinCounts.set(checkin.event_id, (checkinCounts.get(checkin.event_id) ?? 0) + 1);
 
     return (
         <main className="min-h-screen bg-[#071522] px-5 py-10 text-white">
@@ -117,7 +128,7 @@ export default async function SchoolAdminDashboard({ params }: PageProps) {
                     <section className="rounded-2xl border border-white/10 bg-[#102B46] p-6">
                         <h2 className="text-lg font-bold">Recent events</h2>
                         <div className="mt-4 space-y-3">
-                            {(events ?? []).map((event) => <div key={event.id} className="rounded-xl bg-white/5 p-3"><p className="font-semibold">{event.title}</p><p className="mt-1 text-xs text-slate-400">{event.event_date}{event.event_time ? ` · ${event.event_time}` : ""}{event.location ? ` · ${event.location}` : ""}</p></div>)}
+                            {(events ?? []).map((event) => <div key={event.id} className="rounded-xl bg-white/5 p-3"><p className="font-semibold">{event.title}</p><p className="mt-1 text-xs text-slate-400">{event.event_date}{event.event_time ? ` · ${event.event_time}` : ""}{event.location ? ` · ${event.location}` : ""}</p><p className="mt-2 text-xs text-slate-300">{rsvpCounts.get(event.id) ?? 0} RSVPs · {checkinCounts.get(event.id) ?? 0} checked in</p></div>)}
                             {!events?.length && <p className="text-sm text-slate-400">No events posted.</p>}
                         </div>
                     </section>
