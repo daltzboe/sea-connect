@@ -9,10 +9,15 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getCurrentProfile } from "@/lib/profile";
 
 export default async function Dashboard() {
-    const { user, profile } = await getCurrentProfile();
+    const { user, profile, isPlatformAdmin } = await getCurrentProfile();
 
     if (!user) {
         redirect("/signin");
+    }
+
+    // A platform admin without an active campus belongs in the global admin area.
+    if (isPlatformAdmin && !profile?.primary_school_id) {
+        redirect("/admin");
     }
 
     const fullName =
@@ -38,6 +43,7 @@ export default async function Dashboard() {
         supabase
             .from("events")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .gte("event_date", today)
             .order("event_date", { ascending: true })
             .order("event_time", { ascending: true })
@@ -46,12 +52,14 @@ export default async function Dashboard() {
         supabase
             .from("announcements")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle(),
         supabase
             .from("meetings")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .gte("meeting_date", today)
             .order("meeting_date", { ascending: true })
             .order("meeting_time", { ascending: true })
