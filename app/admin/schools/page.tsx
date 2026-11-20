@@ -64,7 +64,7 @@ export default async function GlobalSchoolDirectoryPage() {
                         <div key={school.id} className="rounded-2xl border border-white/10 bg-[#102B46] p-5 transition hover:border-[#F4C430]/40">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                    <p className="font-bold group-hover:text-[#F4C430]">{school.name}</p>
+                                    <p className="font-bold">{school.name}</p>
                                     <p className="mt-1 text-xs text-slate-400">{school.short_name}{school.city ? ` · ${school.city}` : ""}{school.state ? `, ${school.state}` : ""}{school.country !== "United States" ? ` · ${school.country}` : ""}</p>
                                 </div>
                                 <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs">{activeCounts.get(school.id) ?? 0} members</span>
