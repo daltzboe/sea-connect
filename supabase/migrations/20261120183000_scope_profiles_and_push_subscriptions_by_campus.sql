@@ -8,7 +8,16 @@ on public.profiles for select to authenticated
 using (
   id = (select auth.uid())
   or private.is_platform_admin()
-  or private.shares_school_with(id)
+  or exists (
+    select 1
+    from public.school_memberships target_membership
+    join public.school_memberships viewer_membership
+      on viewer_membership.school_id = target_membership.school_id
+     and viewer_membership.user_id = (select auth.uid())
+     and viewer_membership.status = 'active'
+    where target_membership.user_id = profiles.id
+      and target_membership.status = 'active'
+  )
 );
 
 create policy "Campus officers update profiles in their campus"
