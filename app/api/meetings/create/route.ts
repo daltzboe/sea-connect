@@ -55,6 +55,7 @@ export async function POST(request: Request) {
         } = await supabase
             .from("meetings")
             .insert({
+                school_id: profile.primary_school_id,
                 title,
                 description,
                 meeting_date: meetingDate,
