@@ -4,14 +4,14 @@ import { getCurrentProfile } from "@/lib/profile";
 import BottomNav from "@/components/BottomNav";
 
 export default async function AdminPage() {
-    const { user, profile } = await getCurrentProfile();
+    const { user, profile, isPlatformAdmin } = await getCurrentProfile();
 
     if (!user) {
         redirect("/signin");
     }
 
-    // Only officers can access the Admin Panel
-    if (profile?.role !== "officer") {
+    // Campus officers and the global platform administrator can access the Admin Panel.
+    if (profile?.role !== "officer" && !isPlatformAdmin) {
         redirect("/dashboard");
     }
 
@@ -143,37 +143,19 @@ export default async function AdminPage() {
                         </p>
                     </Link>
 
-                    {/* School Membership Requests */}
-                    <Link
-                        href="/admin/school-memberships"
-                        className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
-                    >
-                        <div className="text-3xl">
-                            🎓
-                        </div>
-
-                        <h2 className="mt-3 font-bold">
-                            School Requests
-                        </h2>
-
-                        <p className="mt-1 text-sm text-gray-500">
-                            Review campus membership requests
-                        </p>
-                    </Link>
-
                 </div>
 
                 {/* Admin Notice */}
                 <div className="mt-6 rounded-2xl bg-[#0C2340] p-5 text-white">
 
                     <p className="font-semibold">
-                        Officer Access
+                        {isPlatformAdmin ? "Global Platform Administrator" : "Campus Officer Access"}
                     </p>
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
-                        You have officer permissions. You can manage
-                        users, active SEA members, events, meetings,
-                        and announcements.
+                        {isPlatformAdmin
+                            ? "You have platform-level access across SEAConnect campuses. Campus officers remain limited to their own school."
+                            : "You have officer permissions for your campus. You can manage members, events, meetings, and announcements."}
                     </p>
 
                 </div>
