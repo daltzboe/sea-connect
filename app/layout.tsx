@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import EnableNotifications from "@/components/EnableNotifications";
+import SchoolProvider from "@/components/SchoolProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | SEAConnect",
   },
   description:
-      "The digital hub for Students of East Africa at UTSA.",
+      "The digital hub connecting Students of East Africa across university campuses.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
     <body className="min-h-full flex flex-col">
-    {children}
+    <SchoolProvider>{children}</SchoolProvider>
     <ServiceWorkerRegistration />
     </body>
     </html>
