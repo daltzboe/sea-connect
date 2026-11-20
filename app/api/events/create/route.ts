@@ -125,6 +125,7 @@ export async function POST(request: Request) {
         const { data: event, error: eventError } = await supabase
             .from("events")
             .insert({
+                school_id: profile.primary_school_id,
                 title: title.trim(),
                 description:
                     typeof description === "string"
