@@ -1,4 +1,5 @@
 "use client";
+import { SchoolShortName } from "@/components/SchoolProvider";
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
@@ -344,7 +345,7 @@ export default function EditProfile() {
                 </form>
 
                 <p className="mt-6 text-center text-xs text-gray-400">
-                    SEAConnect • Students of East Africa • UTSA
+                    SEAConnect • Students of East Africa • <SchoolShortName />
                 </p>
 
             </div>

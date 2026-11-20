@@ -1,22 +1,22 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function MembersPage() {
+    const { user, profile } = await getCurrentProfile();
     const supabase = await createSupabaseServerClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
 
     if (!user) {
         redirect("/signin");
     }
 
     const { data: members, error } = await supabase
-        .from("members")
-        .select("*")
+        .from("profiles")
+        .select("id,full_name,position,country,role")
+        .eq("primary_school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
         .order("full_name", { ascending: true });
 
     return (
@@ -50,7 +50,7 @@ export default async function MembersPage() {
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
                         Meet the students who make up the
-                        Students of East Africa community at UTSA.
+                        Students of East Africa community at <SchoolShortName />.
                     </p>
 
                     <div className="mt-5 flex gap-2 text-xl">
@@ -140,9 +140,9 @@ export default async function MembersPage() {
                             .toUpperCase();
 
                         const isOfficer =
-                            member.position &&
-                            member.position.toLowerCase() !==
-                            "sea member";
+                            member.role === "officer" ||
+                            (member.position &&
+                                member.position.toLowerCase() !== "sea member");
 
                         return (
                             <article
@@ -194,8 +194,7 @@ export default async function MembersPage() {
                                     </div>
 
                                     {/* Details */}
-                                    {(member.country ||
-                                        member.bio) && (
+                                    {member.country && (
                                         <div className="mt-5 border-t border-gray-100 pt-4">
 
                                             {member.country && (
@@ -210,11 +209,6 @@ export default async function MembersPage() {
                                                 </div>
                                             )}
 
-                                            {member.bio && (
-                                                <p className="mt-3 text-sm leading-6 text-gray-500">
-                                                    {member.bio}
-                                                </p>
-                                            )}
 
                                         </div>
                                     )}
@@ -250,7 +244,7 @@ export default async function MembersPage() {
                                 </h3>
 
                                 <p className="mt-2 text-xs leading-5 text-gray-400">
-                                    Students of East Africa • UTSA
+                                    Students of East Africa • <SchoolShortName />
                                 </p>
 
                             </div>

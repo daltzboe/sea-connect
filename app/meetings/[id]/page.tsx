@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import { redirect, notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
@@ -193,7 +194,7 @@ export default async function MeetingDetailsPage({
                         </h2>
 
                         <p className="mt-2 text-sm text-gray-400">
-                            Connecting our community at UTSA.
+                            Connecting our community at <SchoolShortName />.
                         </p>
 
                     </div>

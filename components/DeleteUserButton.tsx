@@ -18,7 +18,7 @@ export default function DeleteUserButton({
                 onClick={() => setShowConfirm(true)}
                 className="mt-5 w-full rounded-xl bg-red-600 px-4 py-3 font-semibold text-white transition hover:bg-red-700"
             >
-                Delete User
+                Remove from Campus
             </button>
         );
     }
@@ -27,12 +27,11 @@ export default function DeleteUserButton({
         <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4">
 
             <p className="text-sm font-semibold text-red-700">
-                Are you sure you want to delete this user?
+                Remove this member from the current campus?
             </p>
 
             <p className="mt-2 text-xs leading-5 text-red-600">
-                This permanently deletes their SEAConnect
-                account. This action cannot be undone.
+                Their SEAConnect account and memberships at other schools will remain.
             </p>
 
             <div className="mt-4 flex gap-3">
@@ -50,7 +49,7 @@ export default function DeleteUserButton({
                         type="submit"
                         className="w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white"
                     >
-                        Yes, Delete
+                        Yes, Remove
                     </button>
                 </form>
 

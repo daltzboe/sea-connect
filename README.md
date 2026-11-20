@@ -1,6 +1,6 @@
 # SEAConnect
 
-SEAConnect is a web app for the **Students of East Africa (SEA) at UTSA**.
+SEAConnect is a web app for the **Students of East Africa (SEA) across participating university campuses**.
 
 It provides a central place for members to stay connected, view events, meetings, announcements, and manage their profiles.
 
@@ -43,4 +43,4 @@ http://localhost:3000
 
 Developed by **Dalton Opudo**
 
-Students of East Africa • UTSA
+Students of East Africa • SEAConnect

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import SchoolSelector from "@/components/SchoolSelector";
 
 const AFRICAN_COUNTRIES = [
     "Algeria",
@@ -69,6 +70,7 @@ export default function SignUp() {
 
     const [fullName, setFullName] = useState("");
     const [country, setCountry] = useState("");
+    const [schoolId, setSchoolId] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] =
@@ -91,6 +93,7 @@ export default function SignUp() {
 
         if (
             !cleanName ||
+            !schoolId ||
             !country ||
             !cleanEmail ||
             !password ||
@@ -127,6 +130,7 @@ export default function SignUp() {
                     data: {
                         full_name: cleanName,
                         country,
+                        school_id: schoolId,
                     },
                 },
             });
@@ -149,11 +153,34 @@ export default function SignUp() {
             return;
         }
 
+        if (data.user && data.session) {
+            const [{ data: createdProfile, error: profileError }, { data: membership, error: membershipError }] = await Promise.all([
+                supabase
+                    .from("profiles")
+                    .select("primary_school_id")
+                    .eq("id", data.user.id)
+                    .maybeSingle(),
+                supabase
+                    .from("school_memberships")
+                    .select("id")
+                    .eq("user_id", data.user.id)
+                    .eq("school_id", schoolId)
+                    .eq("status", "active")
+                    .maybeSingle(),
+            ]);
+
+            if (profileError || membershipError || createdProfile?.primary_school_id !== schoolId || !membership) {
+                setLoading(false);
+                setError("Your account was created, but we couldn't confirm your campus membership. Please sign in again or contact support.");
+                return;
+            }
+        }
+
         setLoading(false);
 
         if (data.user && !data.session) {
             setMessage(
-                "Account created! Check your email to confirm your account before signing in."
+                "Account created! Check your email to confirm your address. Your selected school membership is activated automatically."
             );
 
             return;
@@ -207,7 +234,7 @@ export default function SignUp() {
 
                     <p className="mt-2 text-sm leading-6 text-gray-300">
                         Create your account and connect with
-                        Students of East Africa at UTSA.
+                        Students of East Africa at your university. Choose your school and join instantly.
                     </p>
 
                 </div>
@@ -243,6 +270,9 @@ export default function SignUp() {
                         />
 
                     </div>
+
+                    {/* School */}
+                    <SchoolSelector value={schoolId} onChange={setSchoolId} />
 
                     {/* Country */}
                     <div className="mt-5">
@@ -434,7 +464,7 @@ export default function SignUp() {
 
                 {/* Footer */}
                 <div className="mt-auto pt-8 text-center text-xs text-gray-500">
-                    Students of East Africa • UTSA
+                    Students of East Africa • Campus communities
                 </div>
 
             </div>

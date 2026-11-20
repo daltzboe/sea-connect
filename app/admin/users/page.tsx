@@ -16,12 +16,22 @@ export default async function AdminUsersPage() {
 
     const supabase = await createSupabaseServerClient();
 
-    const { data: users, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("full_name", {
-            ascending: true,
-        });
+    const { data: campusMemberships } = await supabase
+        .from("school_memberships")
+        .select("user_id,role,status")
+        .eq("school_id", profile.primary_school_id!)
+        .eq("status", "active");
+
+    const campusUserIds = [...new Set((campusMemberships ?? []).map((membership) => membership.user_id))];
+    const campusRoleByUser = new Map((campusMemberships ?? []).map((membership) => [membership.user_id, membership.role]));
+
+    const { data: users, error } = campusUserIds.length
+        ? await supabase
+            .from("profiles")
+            .select("*")
+            .in("id", campusUserIds)
+            .order("full_name", { ascending: true })
+        : { data: [], error: null };
 
     return (
         <main className="min-h-screen bg-gray-100 pb-10 text-[#0C2340]">
@@ -172,13 +182,13 @@ export default async function AdminUsersPage() {
 
                                         <span
                                             className={
-                                                managedUser.role ===
+                                                campusRoleByUser.get(managedUser.id) ===
                                                 "officer"
                                                     ? "rounded-full bg-[#16803A]/10 px-3 py-1 text-xs font-semibold text-[#16803A]"
                                                     : "rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600"
                                             }
                                         >
-                                            {managedUser.role ===
+                                            {campusRoleByUser.get(managedUser.id) ===
                                             "officer"
                                                 ? "Officer"
                                                 : "Member"}

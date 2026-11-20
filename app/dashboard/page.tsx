@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DashboardSidebar from "@/components/DashboardSidebar";
@@ -8,10 +9,15 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getCurrentProfile } from "@/lib/profile";
 
 export default async function Dashboard() {
-    const { user, profile } = await getCurrentProfile();
+    const { user, profile, isPlatformAdmin } = await getCurrentProfile();
 
     if (!user) {
         redirect("/signin");
+    }
+
+    // A platform admin without an active campus belongs in the global admin area.
+    if (isPlatformAdmin && !profile?.primary_school_id) {
+        redirect("/admin");
     }
 
     const fullName =
@@ -37,6 +43,7 @@ export default async function Dashboard() {
         supabase
             .from("events")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .gte("event_date", today)
             .order("event_date", { ascending: true })
             .order("event_time", { ascending: true })
@@ -45,12 +52,14 @@ export default async function Dashboard() {
         supabase
             .from("announcements")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle(),
         supabase
             .from("meetings")
             .select("*")
+            .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
             .gte("meeting_date", today)
             .order("meeting_date", { ascending: true })
             .order("meeting_time", { ascending: true })
@@ -115,7 +124,7 @@ export default async function Dashboard() {
                                     SEACONNECT
                                 </span>
                                 <span className="mt-0.5 block text-[11px] text-blue-100/70">
-                                    Students of East Africa · UTSA
+                                    Students of East Africa · <SchoolShortName />
                                 </span>
                             </span>
                         </Link>
@@ -135,7 +144,7 @@ export default async function Dashboard() {
                             Hey, {firstName} <span aria-hidden="true">👋</span>
                         </h1>
                         <p className="mt-2 max-w-sm text-sm leading-6 text-blue-100/75">
-                            Find your people, discover what is happening, and stay connected with East Africa at UTSA.
+                            Find your people, discover what is happening, and stay connected with East Africa at <SchoolShortName />.
                         </p>
 
                         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -463,7 +472,7 @@ export default async function Dashboard() {
                             <p className="text-2xl">🌍</p>
                             <p className="mt-2 text-base font-extrabold">One community. Many cultures.</p>
                             <p className="mt-1 text-xs text-blue-100/65">
-                                Connecting Students of East Africa at UTSA.
+                                Connecting Students of East Africa at <SchoolShortName />.
                             </p>
                         </div>
                     </footer>

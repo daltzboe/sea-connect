@@ -24,17 +24,15 @@ export default function CreateMemberPage() {
         setLoading(true);
         setError("");
 
-        const { error } = await supabase
-            .from("members")
-            .insert({
-                full_name: fullName,
-                position,
-                country,
-                bio,
-            });
+        const response = await fetch("/api/admin/members/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fullName, position, country, bio }),
+        });
+        const result = await response.json();
 
-        if (error) {
-            setError(error.message);
+        if (!response.ok) {
+            setError(result.error || "Could not add member.");
             setLoading(false);
             return;
         }

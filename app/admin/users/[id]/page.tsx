@@ -36,55 +36,43 @@ export default async function ManageUserPage({ params }: PageProps) {
         redirect("/admin/users");
     }
 
+    const { data: campusMembership } = await supabase
+        .from("school_memberships")
+        .select("role,status")
+        .eq("school_id", profile.primary_school_id!)
+        .eq("user_id", id)
+        .maybeSingle();
+
+    if (!campusMembership || campusMembership.status !== "active") {
+        redirect("/admin/users");
+    }
+
+    const campusRole = campusMembership.role;
+
     async function deleteUser() {
         "use server";
 
-        const supabase = await createSupabaseServerClient();
-
-        const {
-            data: { user: currentUser },
-        } = await supabase.auth.getUser();
-
-        if (!currentUser) {
-            redirect("/signin");
-        }
-
-        // Verify the person performing the action is an officer
-        const { data: currentProfile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", currentUser.id)
-            .single();
-
-        if (currentProfile?.role !== "officer") {
-            redirect("/dashboard");
-        }
-
-        // Prevent officers from deleting themselves
-        if (id === currentUser.id) {
-            redirect(`/admin/users/${id}`);
-        }
+        const { user: currentUser, profile: currentProfile } = await getCurrentProfile();
+        if (!currentUser) redirect("/signin");
+        if (currentProfile?.role !== "officer" || !currentProfile.primary_school_id) redirect("/dashboard");
+        if (id === currentUser.id) redirect(`/admin/users/${id}`);
 
         const adminSupabase = createSupabaseAdminClient();
+        const schoolId = currentProfile.primary_school_id;
 
-        // Delete authentication account
-        const { error: authError } =
-            await adminSupabase.auth.admin.deleteUser(id);
+        const { error: membershipError } = await adminSupabase
+            .from("school_memberships")
+            .delete()
+            .eq("school_id", schoolId)
+            .eq("user_id", id);
 
-        if (authError) {
-            throw new Error(authError.message);
-        }
+        if (membershipError) throw new Error(membershipError.message);
 
-        // Delete profile
-        const { error: profileError } =
-            await adminSupabase
-                .from("profiles")
-                .delete()
-                .eq("id", id);
-
-        if (profileError) {
-            throw new Error(profileError.message);
-        }
+        await adminSupabase
+            .from("profiles")
+            .update({ primary_school_id: null })
+            .eq("id", id)
+            .eq("primary_school_id", schoolId);
 
         redirect("/admin/users");
     }
@@ -198,7 +186,7 @@ export default async function ManageUserPage({ params }: PageProps) {
                             </p>
 
                             <span className="mt-2 inline-flex rounded-full bg-[#F15A24]/10 px-3 py-1 text-xs font-semibold text-[#F15A24]">
-                                {managedUser.role === "officer"
+                                {campusRole === "officer"
                                     ? "Officer"
                                     : "Member"}
                             </span>
@@ -223,30 +211,14 @@ export default async function ManageUserPage({ params }: PageProps) {
                         action={async (formData) => {
                             "use server";
 
-                            const supabase =
-                                await createSupabaseServerClient();
+                            const { user: currentUser, profile: currentProfile } = await getCurrentProfile();
 
-                            const {
-                                data: {
-                                    user: currentUser,
-                                },
-                            } = await supabase.auth.getUser();
-
-                            if (!currentUser) {
-                                redirect("/signin");
-                            }
-
-                            // Verify current user is an officer
-                            const { data: currentProfile } =
-                                await supabase
-                                    .from("profiles")
-                                    .select("role")
-                                    .eq("id", currentUser.id)
-                                    .single();
-
-                            if (currentProfile?.role !== "officer") {
+                            if (!currentUser) redirect("/signin");
+                            if (currentProfile?.role !== "officer" || !currentProfile.primary_school_id) {
                                 redirect("/dashboard");
                             }
+
+                            const supabase = await createSupabaseServerClient();
 
                             const fullName =
                                 String(formData.get("full_name") || "").trim();
@@ -371,155 +343,32 @@ export default async function ManageUserPage({ params }: PageProps) {
 
                 </section>
 
-                {/* Role Management */}
+                {/* Campus Role Management */}
                 <section className="mt-5 rounded-2xl bg-white p-6 shadow-sm">
-
-                    <h2 className="text-lg font-bold">
-                        Role Management
-                    </h2>
-
+                    <h2 className="text-lg font-bold">Campus Role Management</h2>
                     <p className="mt-2 text-sm leading-6 text-gray-500">
-                        Officers can promote users to officers
-                        or return officers to regular members.
+                        This changes the member's role at this campus only. Their role at other schools is not affected.
                     </p>
-
                     {managedUser.id === user.id ? (
-
                         <div className="mt-5 rounded-xl bg-yellow-50 p-4 text-sm text-yellow-700">
-                            You cannot change your own role.
+                            You cannot change your own campus role.
                         </div>
-
-                    ) : managedUser.role === "officer" ? (
-
-                        <form
-                            action={async () => {
-                                "use server";
-
-                                const supabase =
-                                    await createSupabaseServerClient();
-
-                                const {
-                                    data: {
-                                        user: currentUser,
-                                    },
-                                } =
-                                    await supabase.auth.getUser();
-
-                                if (!currentUser) {
-                                    redirect("/signin");
-                                }
-
-                                const {
-                                    data: currentProfile,
-                                } = await supabase
-                                    .from("profiles")
-                                    .select("role")
-                                    .eq(
-                                        "id",
-                                        currentUser.id
-                                    )
-                                    .single();
-
-                                if (
-                                    currentProfile?.role !==
-                                    "officer"
-                                ) {
-                                    redirect("/dashboard");
-                                }
-
-                                const { error } =
-                                    await supabase
-                                        .from("profiles")
-                                        .update({
-                                            role: "member",
-                                        })
-                                        .eq("id", id);
-
-                                if (error) {
-                                    throw new Error(
-                                        error.message
-                                    );
-                                }
-
-                                redirect("/admin/users");
-                            }}
-                        >
-                            <button
-                                type="submit"
-                                className="mt-5 w-full rounded-xl bg-gray-200 px-4 py-3 font-semibold text-[#0C2340] transition hover:bg-gray-300"
-                            >
-                                Demote to Member
-                            </button>
-                        </form>
-
                     ) : (
-
-                        <form
-                            action={async () => {
-                                "use server";
-
-                                const supabase =
-                                    await createSupabaseServerClient();
-
-                                const {
-                                    data: {
-                                        user: currentUser,
-                                    },
-                                } =
-                                    await supabase.auth.getUser();
-
-                                if (!currentUser) {
-                                    redirect("/signin");
-                                }
-
-                                const {
-                                    data: currentProfile,
-                                } = await supabase
-                                    .from("profiles")
-                                    .select("role")
-                                    .eq(
-                                        "id",
-                                        currentUser.id
-                                    )
-                                    .single();
-
-                                if (
-                                    currentProfile?.role !==
-                                    "officer"
-                                ) {
-                                    redirect("/dashboard");
-                                }
-
-                                const { error } =
-                                    await supabase
-                                        .from("profiles")
-                                        .update({
-                                            role: "officer",
-                                        })
-                                        .eq("id", id);
-
-                                if (error) {
-                                    throw new Error(
-                                        error.message
-                                    );
-                                }
-
-                                redirect("/admin/users");
-                            }}
-                        >
+                        <form action={"/admin/users/" + id + "/role"} method="POST">
+                            <input type="hidden" name="role" value={campusRole === "officer" ? "member" : "officer"} />
                             <button
                                 type="submit"
-                                className="mt-5 w-full rounded-xl bg-[#16803A] px-4 py-3 font-semibold text-white transition hover:opacity-90"
+                                className={campusRole === "officer"
+                                    ? "mt-5 w-full rounded-xl bg-gray-200 px-4 py-3 font-semibold text-[#0C2340] transition hover:bg-gray-300"
+                                    : "mt-5 w-full rounded-xl bg-[#16803A] px-4 py-3 font-semibold text-white transition hover:opacity-90"}
                             >
-                                Promote to Officer
+                                {campusRole === "officer" ? "Demote to Member" : "Promote to Officer"}
                             </button>
                         </form>
-
                     )}
-
                 </section>
 
-                {/* Delete User */}
+                {/* Remove from Campus */}
                 {managedUser.id !== user.id && (
                     <section className="mt-5 rounded-2xl bg-white p-6 shadow-sm">
 
@@ -528,9 +377,7 @@ export default async function ManageUserPage({ params }: PageProps) {
                         </h2>
 
                         <p className="mt-2 text-sm leading-6 text-gray-500">
-                            Permanently removes this user's
-                            SEAConnect account. This cannot be
-                            undone.
+                            Removes this person's membership from this campus only. Their SEAConnect account and memberships at other schools remain intact.
                         </p>
 
                         <DeleteUserButton

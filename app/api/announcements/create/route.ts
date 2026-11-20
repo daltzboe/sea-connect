@@ -14,7 +14,7 @@ export async function POST(request: Request) {
             );
         }
 
-        if (profile?.role !== "officer") {
+        if (profile?.role !== "officer" || !profile.primary_school_id) {
             return NextResponse.json(
                 { error: "Forbidden" },
                 { status: 403 }
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         } = await supabase
             .from("announcements")
             .insert({
+                school_id: profile.primary_school_id,
                 title,
                 content,
             })
@@ -60,57 +61,22 @@ export async function POST(request: Request) {
             );
         }
 
-        // Get users who have push notifications enabled
-        const {
-            data: subscriptions,
-            error: subscriptionError,
-        } = await supabase
-            .from("push_subscriptions")
+        // Get active members of this campus who have push notifications enabled.
+        const { data: campusMemberships, error: membershipError } = await supabase
+            .from("school_memberships")
             .select("user_id")
-            .neq("user_id", user.id);
+            .eq("school_id", profile.primary_school_id)
+            .eq("status", "active");
 
-        if (subscriptionError) {
-            console.error(
-                "Could not load push subscriptions:",
-                subscriptionError.message
-            );
+        if (membershipError) {
+            console.error("Could not load campus memberships:", membershipError.message);
         }
 
-        const userIds = [
-            ...new Set(
-                (subscriptions ?? []).map(
-                    (subscription) =>
-                        subscription.user_id
-                )
-            ),
-        ];
+        const campusUserIds = (campusMemberships ?? [])
+            .map((membership) => membership.user_id)
+            .filter((userId) => userId !== user.id);
 
-        // Create in-app notifications
-        if (userIds.length > 0) {
-            const notifications = userIds.map(
-                (userId) => ({
-                    user_id: userId,
-                    title: "New Announcement",
-                    message: title,
-                    type: "announcement",
-                    link: `/announcements/${announcement.id}`,
-                    is_read: false,
-                })
-            );
-
-            const {
-                error: notificationError,
-            } = await supabase
-                .from("notifications")
-                .insert(notifications);
-
-            if (notificationError) {
-                console.error(
-                    "Could not create notifications:",
-                    notificationError.message
-                );
-            }
-        }
+        const userIds = campusUserIds;
 
         // Send push notifications
         for (const userId of userIds) {

@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "SEAConnect",
         short_name: "SEAConnect",
         description:
-            "The digital hub for Students of East Africa at UTSA.",
+            "The digital hub connecting Students of East Africa across university campuses.",
         start_url: "/",
         display: "standalone",
         background_color: "#071522",

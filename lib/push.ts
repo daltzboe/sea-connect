@@ -1,5 +1,5 @@
 import webpush from "web-push";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 
 const vapidPublicKey =
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -29,8 +29,9 @@ export async function sendPushNotification(
     userId: string,
     payload: PushPayload
 ) {
-    const supabase =
-        await createSupabaseServerClient();
+    // This server-only helper uses the service role to retrieve the target user's
+    // subscription after the calling API route has authorized the recipient.
+    const supabase = createSupabaseAdminClient();
 
     const { data: subscriptions, error } =
         await supabase
