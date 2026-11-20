@@ -1,4 +1,5 @@
 "use client";
+import { SchoolShortName } from "@/components/SchoolProvider";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -60,7 +61,7 @@ export default function BottomNav() {
                 <nav aria-label="Main navigation" className="mt-3 flex flex-1 flex-col gap-1">{navLinks()}</nav>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="text-xs font-bold text-white">One community. Many cultures.</p>
-                    <p className="mt-2 text-[11px] leading-5 text-slate-400">Your East African community at UTSA.</p>
+                    <p className="mt-2 text-[11px] leading-5 text-slate-400">Your East African community at <SchoolShortName />.</p>
                 </div>
             </aside>
 
@@ -81,7 +82,7 @@ export default function BottomNav() {
                 <nav aria-label="Mobile main navigation" className="mt-3 flex flex-1 flex-col gap-1">{navLinks()}</nav>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="text-xs font-bold text-white">One community. Many cultures.</p>
-                    <p className="mt-2 text-[11px] leading-5 text-slate-400">Your East African community at UTSA.</p>
+                    <p className="mt-2 text-[11px] leading-5 text-slate-400">Your East African community at <SchoolShortName />.</p>
                 </div>
             </aside>
         </>
