@@ -82,7 +82,7 @@ export default function SchoolSelector({
             return a.name.localeCompare(b.name);
         });
 
-        return term ? matches.slice(0, 20) : matches.slice(0, 12);
+        return term ? matches : matches.slice(0, 12);
     }, [schools, search]);
 
     function chooseSchool(school: School) {
