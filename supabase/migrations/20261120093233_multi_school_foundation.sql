@@ -129,7 +129,7 @@ values
 ('Louisiana State University','LSU','lsu','Baton Rouge','Louisiana','United States','university',false),
 ('University of Alabama','UA','ua','Tuscaloosa','Alabama','United States','university',false),
 ('Auburn University','Auburn','auburn','Auburn','Alabama','United States','university',false),
-('University of Tennessee','UTK','utk','Knoxville','Tennessee','United States','university',false),
+('University of Tennessee','UTK','utk','Knoxville','Tennessee','United States','university',false)
 on conflict (slug) do update set
   name=excluded.name, short_name=excluded.short_name, city=excluded.city,
   state=excluded.state, school_type=excluded.school_type;
