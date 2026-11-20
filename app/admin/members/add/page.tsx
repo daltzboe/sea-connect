@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 const countries = [
     "Algeria",
@@ -91,19 +90,21 @@ export default function AddMemberPage() {
 
         setLoading(true);
 
-        const { error: insertError } = await supabase
-            .from("members")
-            .insert({
-                full_name: fullName.trim(),
+        const response = await fetch("/api/admin/members/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                fullName: fullName.trim(),
                 country,
                 position: position.trim(),
-                bio: bio.trim() || null,
-            });
-
+                bio: bio.trim(),
+            }),
+        });
+        const result = await response.json();
         setLoading(false);
 
-        if (insertError) {
-            setError(insertError.message);
+        if (!response.ok) {
+            setError(result.error || "Could not add this member.");
             return;
         }
 
