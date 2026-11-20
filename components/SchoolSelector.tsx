@@ -106,7 +106,10 @@ export default function SchoolSelector({
                     aria-controls="school-options"
                     autoComplete="off"
                     value={search}
-                    onFocus={() => setOpen(true)}
+                    onFocus={() => {
+                        setOpen(true);
+                        if (value) setSearch("");
+                    }}
                     onChange={(event) => {
                         setSearch(event.target.value);
                         setOpen(true);
@@ -183,7 +186,7 @@ export default function SchoolSelector({
             )}
 
             <p className="mt-2 text-xs text-gray-400">
-                Can&apos;t find your school? You can request that it be added to the directory.
+                Search by full university name, campus abbreviation, city, or state.
             </p>
         </div>
     );
