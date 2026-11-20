@@ -24,7 +24,7 @@ export default async function GlobalSchoolDirectoryPage() {
 
     const supabase = await createSupabaseServerClient();
     const [schoolResult, membershipResult] = await Promise.all([
-        supabase.from("schools").select("id,name,short_name,city,state,country,community_enabled,is_listed").eq("is_listed", true).order("name"),
+        supabase.from("schools").select("id,name,short_name,city,state,country,community_enabled,is_listed").eq("is_listed", true).eq("school_type", "university").order("name"),
         supabase.from("school_memberships").select("school_id,status"),
     ]);
 
