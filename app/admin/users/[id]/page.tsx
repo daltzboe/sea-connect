@@ -52,52 +52,27 @@ export default async function ManageUserPage({ params }: PageProps) {
     async function deleteUser() {
         "use server";
 
-        const supabase = await createSupabaseServerClient();
-
-        const {
-            data: { user: currentUser },
-        } = await supabase.auth.getUser();
-
-        if (!currentUser) {
-            redirect("/signin");
-        }
-
-        // Verify the person performing the action is an officer
-        const { data: currentProfile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", currentUser.id)
-            .single();
-
-        if (currentProfile?.role !== "officer") {
-            redirect("/dashboard");
-        }
-
-        // Prevent officers from deleting themselves
-        if (id === currentUser.id) {
-            redirect(`/admin/users/${id}`);
-        }
+        const { user: currentUser, profile: currentProfile } = await getCurrentProfile();
+        if (!currentUser) redirect("/signin");
+        if (currentProfile?.role !== "officer" || !currentProfile.primary_school_id) redirect("/dashboard");
+        if (id === currentUser.id) redirect(`/admin/users/${id}`);
 
         const adminSupabase = createSupabaseAdminClient();
+        const schoolId = currentProfile.primary_school_id;
 
-        // Delete authentication account
-        const { error: authError } =
-            await adminSupabase.auth.admin.deleteUser(id);
+        const { error: membershipError } = await adminSupabase
+            .from("school_memberships")
+            .delete()
+            .eq("school_id", schoolId)
+            .eq("user_id", id);
 
-        if (authError) {
-            throw new Error(authError.message);
-        }
+        if (membershipError) throw new Error(membershipError.message);
 
-        // Delete profile
-        const { error: profileError } =
-            await adminSupabase
-                .from("profiles")
-                .delete()
-                .eq("id", id);
-
-        if (profileError) {
-            throw new Error(profileError.message);
-        }
+        await adminSupabase
+            .from("profiles")
+            .update({ primary_school_id: null })
+            .eq("id", id)
+            .eq("primary_school_id", schoolId);
 
         redirect("/admin/users");
     }
@@ -409,7 +384,7 @@ export default async function ManageUserPage({ params }: PageProps) {
                     )}
                 </section>
 
-                {/* Delete User */}
+                {/* Remove from Campus */}
                 {managedUser.id !== user.id && (
                     <section className="mt-5 rounded-2xl bg-white p-6 shadow-sm">
 
@@ -418,9 +393,7 @@ export default async function ManageUserPage({ params }: PageProps) {
                         </h2>
 
                         <p className="mt-2 text-sm leading-6 text-gray-500">
-                            Permanently removes this user's
-                            SEAConnect account. This cannot be
-                            undone.
+                            Removes this person's membership from this campus only. Their SEAConnect account and memberships at other schools remain intact.
                         </p>
 
                         <DeleteUserButton
