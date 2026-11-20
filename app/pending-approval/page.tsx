@@ -13,6 +13,7 @@ type MembershipInfo = {
         short_name: string;
         city: string | null;
         state: string | null;
+        community_enabled: boolean;
     } | null;
 };
 
@@ -35,7 +36,7 @@ export default function PendingApprovalPage() {
 
         const { data, error: queryError } = await supabase
             .from("school_memberships")
-            .select("status,requested_at,schools(name,short_name,city,state)")
+            .select("status,requested_at,schools(name,short_name,city,state,community_enabled)")
             .eq("user_id", user.id)
             .order("requested_at", { ascending: false })
             .limit(1)
@@ -86,9 +87,13 @@ export default function PendingApprovalPage() {
                 ) : membership?.status === "pending" ? (
                     <>
                         <div className="mt-6 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-4">
-                            <p className="font-semibold text-amber-200">Awaiting officer approval</p>
+                            <p className="font-semibold text-amber-200">
+                                {school?.community_enabled ? "Awaiting officer approval" : "Campus onboarding is not open yet"}
+                            </p>
                             <p className="mt-2 text-sm leading-6 text-slate-300">
-                                Your request to join {school?.name ?? "your selected school"} has been submitted. A SEA officer from that campus must approve your membership before you can access its community.
+                                {school?.community_enabled
+                                    ? `Your request to join ${school?.name ?? "your selected school"} has been submitted. A SEA officer from that campus must approve your membership before you can access its community.`
+                                    : `Your request for ${school?.name ?? "this school"} has been recorded. This campus has not launched its SEAConnect community yet. The platform team will need to onboard the school and assign its first SEA officer before memberships can be approved.`}
                             </p>
                         </div>
                         <p className="mt-4 text-xs text-slate-400">
