@@ -2,13 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function AnnouncementsPage() {
+    const { user, profile } = await getCurrentProfile();
     const supabase = await createSupabaseServerClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
 
     if (!user) {
         redirect("/signin");
@@ -17,6 +15,7 @@ export default async function AnnouncementsPage() {
     const { data: announcements, error } = await supabase
         .from("announcements")
         .select("*")
+        .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
         .order("created_at", { ascending: false });
 
     return (
