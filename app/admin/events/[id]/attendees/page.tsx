@@ -13,7 +13,7 @@ export default async function EventAttendeesPage({ params }: PageProps) {
 
     const supabase = await createSupabaseServerClient();
     const { data: event, error: eventError } = await supabase.from("events")
-        .select("id,title,event_date").eq("id", id).single();
+        .select("id,title,event_date").eq("id", id).eq("school_id", profile.primary_school_id!).single();
     if (eventError || !event) notFound();
 
     const { data: rsvps, error: rsvpError } = await supabase.from("event_rsvps")
