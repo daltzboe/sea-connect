@@ -37,6 +37,7 @@ export default function SchoolSelector({
                 .from("schools")
                 .select("id,name,short_name,city,state,country,school_type,slug")
                 .eq("is_listed", true)
+                .eq("school_type", "university")
                 .order("name");
 
             if (!active) return;
@@ -75,13 +76,7 @@ export default function SchoolSelector({
             ].some((field) => field.toLowerCase().includes(term));
         });
 
-        matches.sort((a, b) => {
-            if (a.slug === "utsa") return -1;
-            if (b.slug === "utsa") return 1;
-            return a.name.localeCompare(b.name);
-        });
-
-        return term ? matches : matches.slice(0, 12);
+        return matches;
     }, [schools, search]);
 
     function chooseSchool(school: School) {
