@@ -45,6 +45,7 @@ export async function proxy(request: NextRequest) {
         "/chat",
         "/notifications",
         "/admin",
+        "/campus-coming-soon",
     ];
 
     const pathname = request.nextUrl.pathname;
@@ -65,7 +66,7 @@ export async function proxy(request: NextRequest) {
         if (!isPlatformAdmin) {
             const { data: membership, error: membershipError } = await supabase
                 .from("school_memberships")
-                .select("id")
+                .select("id,school_id")
                 .eq("user_id", user.id)
                 .eq("status", "active")
                 .limit(1)
@@ -74,6 +75,18 @@ export async function proxy(request: NextRequest) {
             if (membershipError || !membership) {
                 return NextResponse.redirect(
                     new URL("/signup?school=required", request.url)
+                );
+            }
+
+            const { data: school } = await supabase
+                .from("schools")
+                .select("community_enabled")
+                .eq("id", membership.school_id)
+                .maybeSingle();
+
+            if (!school?.community_enabled && pathname !== "/campus-coming-soon") {
+                return NextResponse.redirect(
+                    new URL("/campus-coming-soon", request.url)
                 );
             }
         }
@@ -93,5 +106,6 @@ export const config = {
         "/chat/:path*",
         "/notifications/:path*",
         "/admin/:path*",
+        "/campus-coming-soon/:path*",
     ],
 };
