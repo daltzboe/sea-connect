@@ -43,6 +43,20 @@ export async function getCurrentProfile() {
     let activeAdminSchool: { id: string; name: string; short_name: string } | null = null;
     let effectiveProfile = profile;
 
+    // Campus roles belong to school memberships, not the user's global profile.
+    if (!platformAdmin && profile.primary_school_id) {
+        const { data: membership } = await supabase
+            .from("school_memberships")
+            .select("role,status")
+            .eq("school_id", profile.primary_school_id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+        if (membership?.status === "active") {
+            effectiveProfile = { ...profile, role: membership.role };
+        }
+    }
+
     if (platformAdmin) {
         const cookieStore = await cookies();
         const requestedSchoolId = cookieStore.get(ADMIN_SCHOOL_COOKIE)?.value;
