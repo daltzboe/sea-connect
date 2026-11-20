@@ -42,6 +42,9 @@ export async function proxy(request: NextRequest) {
         "/meetings",
         "/members",
         "/profile",
+        "/chat",
+        "/notifications",
+        "/admin",
     ];
 
     const pathname = request.nextUrl.pathname;
@@ -56,6 +59,22 @@ export async function proxy(request: NextRequest) {
         );
     }
 
+    if (isProtectedRoute && user) {
+        const { data: membership, error: membershipError } = await supabase
+            .from("school_memberships")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .limit(1)
+            .maybeSingle();
+
+        if (membershipError || !membership) {
+            return NextResponse.redirect(
+                new URL("/pending-approval", request.url)
+            );
+        }
+    }
+
     return response;
 }
 
@@ -67,5 +86,8 @@ export const config = {
         "/meetings/:path*",
         "/members/:path*",
         "/profile/:path*",
+        "/chat/:path*",
+        "/notifications/:path*",
+        "/admin/:path*",
     ],
 };
