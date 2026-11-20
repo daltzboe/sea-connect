@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -22,7 +22,7 @@ export default function PendingApprovalPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    async function loadMembership() {
+    const loadMembership = useCallback(async () => {
         setLoading(true);
         setError("");
 
@@ -55,11 +55,11 @@ export default function PendingApprovalPage() {
 
         setMembership(result);
         setLoading(false);
-    }
+    }, [router]);
 
     useEffect(() => {
         void loadMembership();
-    }, []);
+    }, [loadMembership]);
 
     const school = membership?.schools;
 
