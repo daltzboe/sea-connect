@@ -3,13 +3,11 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
+import { getCurrentProfile } from "@/lib/profile";
 
 export default async function MeetingsPage() {
+    const { user, profile } = await getCurrentProfile();
     const supabase = await createSupabaseServerClient();
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
 
     if (!user) {
         redirect("/signin");
@@ -18,6 +16,7 @@ export default async function MeetingsPage() {
     const { data: meetings, error } = await supabase
         .from("meetings")
         .select("*")
+        .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
         .order("meeting_date", { ascending: true })
         .order("meeting_time", { ascending: true });
 
