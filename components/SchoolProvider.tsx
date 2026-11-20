@@ -64,7 +64,7 @@ export default function SchoolProvider({
             active = false;
             subscription.unsubscribe();
         };
-    }, []);
+    }, [initialSchoolName]);
 
     return (
         <SchoolNameContext.Provider value={schoolName}>
