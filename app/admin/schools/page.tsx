@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import BottomNav from "@/components/BottomNav";
 
 type SchoolRow = {
     id: string;
@@ -15,102 +14,68 @@ type SchoolRow = {
     is_listed: boolean;
 };
 
-type MembershipRow = {
-    school_id: string;
-    status: string;
-};
+type MembershipRow = { school_id: string; status: string };
 
 export default async function GlobalSchoolDirectoryPage() {
     const { user, isPlatformAdmin } = await getCurrentProfile();
-
     if (!user) redirect("/signin");
     if (!isPlatformAdmin) redirect("/dashboard");
 
     const supabase = await createSupabaseServerClient();
     const [schoolResult, membershipResult] = await Promise.all([
-        supabase
-            .from("schools")
-            .select("id,name,short_name,city,state,country,community_enabled,is_listed")
-            .order("name"),
-        supabase
-            .from("school_memberships")
-            .select("school_id,status"),
+        supabase.from("schools").select("id,name,short_name,city,state,country,community_enabled,is_listed").order("name"),
+        supabase.from("school_memberships").select("school_id,status"),
     ]);
 
     const schools = (schoolResult.data ?? []) as SchoolRow[];
     const memberships = (membershipResult.data ?? []) as MembershipRow[];
     const activeCounts = new Map<string, number>();
-    const totalCounts = new Map<string, number>();
-
     for (const membership of memberships) {
-        totalCounts.set(membership.school_id, (totalCounts.get(membership.school_id) ?? 0) + 1);
         if (membership.status === "active") {
             activeCounts.set(membership.school_id, (activeCounts.get(membership.school_id) ?? 0) + 1);
         }
     }
 
-    const activeCampusCount = schools.filter((school) => school.community_enabled).length;
-    const totalMembers = memberships.filter((membership) => membership.status === "active").length;
+    const launchedCount = schools.filter((school) => school.community_enabled).length;
+    const activeMemberCount = memberships.filter((membership) => membership.status === "active").length;
 
     return (
-        <main className="min-h-screen bg-[#071522] pb-24 text-white lg:pl-[248px]">
-            <div className="mx-auto max-w-5xl px-5 py-10">
-                <Link href="/admin" className="text-sm text-slate-400 hover:text-white">
-                    ← Back to Admin Panel
-                </Link>
-                <p className="mt-7 text-xs font-bold uppercase tracking-[0.2em] text-[#F4C430]">
-                    SEAConnect Platform Administration
-                </p>
-                <h1 className="mt-2 text-3xl font-black">Global School Directory</h1>
+        <main className="min-h-screen bg-[#071522] px-5 py-10 text-white">
+            <div className="mx-auto max-w-5xl">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#F4C430]">SEAConnect · Global Platform Admin</p>
+                <h1 className="mt-2 text-3xl font-black sm:text-4xl">Global School Directory</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                    One view of every listed campus and its SEAConnect membership. Campus officers manage only their own school; platform administration spans every campus.
+                    Your account is platform-wide and is not assigned to a campus. Choose any school to open its administration overview.
                 </p>
 
                 <div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl border border-white/10 bg-[#102B46] p-4">
-                        <p className="text-2xl font-black">{schools.length}</p>
-                        <p className="mt-1 text-xs text-slate-400">Schools listed</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-[#102B46] p-4">
-                        <p className="text-2xl font-black">{activeCampusCount}</p>
-                        <p className="mt-1 text-xs text-slate-400">Communities launched</p>
-                    </div>
-                    <div className="col-span-2 rounded-2xl border border-white/10 bg-[#102B46] p-4 md:col-span-1">
-                        <p className="text-2xl font-black">{totalMembers}</p>
-                        <p className="mt-1 text-xs text-slate-400">Active memberships</p>
-                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-[#102B46] p-4"><p className="text-2xl font-black">{schools.length}</p><p className="mt-1 text-xs text-slate-400">Schools listed</p></div>
+                    <div className="rounded-2xl border border-white/10 bg-[#102B46] p-4"><p className="text-2xl font-black">{launchedCount}</p><p className="mt-1 text-xs text-slate-400">Communities launched</p></div>
+                    <div className="col-span-2 rounded-2xl border border-white/10 bg-[#102B46] p-4 md:col-span-1"><p className="text-2xl font-black">{activeMemberCount}</p><p className="mt-1 text-xs text-slate-400">Active memberships</p></div>
                 </div>
 
-                <div className="mt-7 space-y-3">
+                <div className="mt-8 flex items-center justify-between gap-3">
+                    <h2 className="text-lg font-bold">All schools</h2>
+                    <span className="text-xs text-slate-400">Select a campus to open it</span>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {schools.map((school) => (
-                        <article key={school.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#102B46] p-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="min-w-0">
-                                <p className="font-bold">{school.name}</p>
-                                <p className="mt-1 text-xs text-slate-400">
-                                    {school.short_name}
-                                    {school.city ? ` · ${school.city}` : ""}
-                                    {school.state ? `, ${school.state}` : ""}
-                                    {school.country !== "United States" ? ` · ${school.country}` : ""}
-                                </p>
+                        <Link key={school.id} href={`/admin/schools/${school.id}`} className="group rounded-2xl border border-white/10 bg-[#102B46] p-5 transition hover:border-[#F4C430]/60 hover:bg-[#153653]">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="font-bold group-hover:text-[#F4C430]">{school.name}</p>
+                                    <p className="mt-1 text-xs text-slate-400">{school.short_name}{school.city ? ` · ${school.city}` : ""}{school.state ? `, ${school.state}` : ""}{school.country !== "United States" ? ` · ${school.country}` : ""}</p>
+                                </div>
+                                <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs">{activeCounts.get(school.id) ?? 0} members</span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs">
-                                <span className="rounded-full bg-white/10 px-3 py-1.5">
-                                    {activeCounts.get(school.id) ?? 0} active members
-                                </span>
-                                <span className={school.community_enabled
-                                    ? "rounded-full bg-emerald-300/10 px-3 py-1.5 text-emerald-200"
-                                    : "rounded-full bg-amber-300/10 px-3 py-1.5 text-amber-200"}>
-                                    {school.community_enabled ? "Community live" : "Not launched"}
-                                </span>
-                                {!school.is_listed && (
-                                    <span className="rounded-full bg-red-300/10 px-3 py-1.5 text-red-200">Hidden</span>
-                                )}
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className={school.community_enabled ? "rounded-full bg-emerald-300/10 px-3 py-1.5 text-xs text-emerald-200" : "rounded-full bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200"}>{school.community_enabled ? "Community live" : "Not launched"}</span>
+                                <span className="text-sm font-semibold text-[#F4C430]">Open dashboard →</span>
                             </div>
-                        </article>
+                        </Link>
                     ))}
                 </div>
             </div>
-            <BottomNav />
         </main>
     );
 }
