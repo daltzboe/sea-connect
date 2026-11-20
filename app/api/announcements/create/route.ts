@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         } = await supabase
             .from("announcements")
             .insert({
+                school_id: profile.primary_school_id,
                 title,
                 content,
             })
