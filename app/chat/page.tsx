@@ -167,10 +167,7 @@ export default function ChatPage() {
                     data: participantProfiles,
                     error: profileError,
                 } = participantIds.length > 0
-                    ? await supabase
-                        .from("profiles")
-                        .select("id, full_name")
-                        .in("id", participantIds)
+                    ? await supabase.rpc("chat_profile_names", { p_user_ids: participantIds })
                     : { data: [], error: null };
 
                 if (profileError) throw profileError;
@@ -313,10 +310,7 @@ export default function ChatPage() {
             const {
                 data: profiles,
                 error: profilesError,
-            } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .in("id", participantIds);
+            } = await supabase.rpc("chat_profile_names", { p_user_ids: participantIds });
 
             if (cancelled) return;
 
@@ -618,7 +612,7 @@ export default function ChatPage() {
         const { data: participantRows, error: participantError } = await supabase.from("conversation_members").select("user_id, role").eq("conversation_id", conversationId);
         if (participantError) throw participantError;
         const ids = (participantRows ?? []).map((row) => row.user_id);
-        const { data: profiles, error: profileError } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        const { data: profiles, error: profileError } = await supabase.rpc("chat_profile_names", { p_user_ids: ids });
         if (profileError) throw profileError;
         const roles = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
         setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, full_name: member.id === userId && isPlatformAdmin ? "SEA Admin" : member.full_name, role: roles.get(member.id) ?? "member" })));
@@ -763,7 +757,7 @@ export default function ChatPage() {
                     </div>
                     <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300 sm:flex">
                         <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        SEA community
+                        {isPlatformAdmin ? "SEA Admin" : "SEA community"}
                     </div>
                 </header>
 
