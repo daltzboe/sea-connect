@@ -127,6 +127,9 @@ export default function SignUp() {
                 email: cleanEmail,
                 password,
                 options: {
+                    // Send confirmation links back to the website where signup began.
+                    // This prevents Supabase's default localhost redirect in production.
+                    emailRedirectTo: `${window.location.origin}/dashboard`,
                     data: {
                         full_name: cleanName,
                         country,
