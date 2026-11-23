@@ -121,6 +121,12 @@ export default function ChatPage() {
                     ? ((memberRows ?? []) as (Member & { primary_school_id?: string | null })[]).filter((member) => member.primary_school_id === chatContext.schoolId)
                     : [];
                 setMembers(campusMembers);
+                // Support opening a direct-message composer from the member directory.
+                const requestedMemberId = new URLSearchParams(window.location.search).get("member");
+                if (requestedMemberId && campusMembers.some((member) => member.id === requestedMemberId)) {
+                    setSelectedMember(requestedMemberId);
+                    setShowNewChat(true);
+                }
 
                 const conversationIds = [
                     ...new Set(
@@ -786,9 +792,9 @@ export default function ChatPage() {
 
                             {showNewChat && (
                                 <div className="mt-3 rounded-2xl border border-white/10 bg-[#102B46] p-3">
-                                    <p className="mb-2 text-sm font-bold">Start a direct message</p>
+                                    <p className="mb-2 text-sm font-bold">Start a student-to-student message</p>
                                     <select value={selectedMember} onChange={(event) => setSelectedMember(event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#071522] px-3 py-3 text-sm text-white outline-none focus:border-[#F15A24]">
-                                        <option value="">Choose a SEA member</option>
+                                        <option value="">Choose a student</option>
                                         {members.map((member) => <option key={member.id} value={member.id}>{member.full_name || "SEA Member"}</option>)}
                                     </select>
                                     <div className="mt-2 flex gap-2">
