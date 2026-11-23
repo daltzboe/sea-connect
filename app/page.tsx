@@ -95,7 +95,7 @@ export default function Home() {
           </h2>
 
           <p className="mt-4 text-base leading-7 text-gray-300">
-            Your digital hub for Students of East Africa at UTSA.
+            Your digital hub for Students of East Africa across university campuses.
           </p>
 
           <div className="mx-auto mt-6 h-1 w-16 rounded-full bg-[#F15A24]" />
@@ -165,7 +165,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="mt-auto pt-10 text-center">
           <p className="text-xs text-gray-500">
-            Students of East Africa at UTSA
+            Students of East Africa across university campuses
           </p>
 
           <p className="mt-1 text-xs text-gray-600">

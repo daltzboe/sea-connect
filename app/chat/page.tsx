@@ -38,6 +38,9 @@ export default function ChatPage() {
     );
 
     const [userId, setUserId] = useState("");
+    const [schoolId, setSchoolId] = useState<string | null>(null);
+    const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+    const [chatDisplayName, setChatDisplayName] = useState("SEA Member");
     const [members, setMembers] = useState<Member[]>([]);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeId, setActiveId] = useState("");
@@ -87,13 +90,20 @@ export default function ChatPage() {
 
                 setUserId(user.id);
 
+                const contextResponse = await fetch("/api/chat/context", { cache: "no-store" });
+                if (!contextResponse.ok) throw new Error("Could not load your chat permissions.");
+                const chatContext = await contextResponse.json() as { schoolId: string | null; isPlatformAdmin: boolean; chatDisplayName: string };
+                setSchoolId(chatContext.schoolId);
+                setIsPlatformAdmin(chatContext.isPlatformAdmin);
+                setChatDisplayName(chatContext.chatDisplayName || "SEA Member");
+
                 const [
                     { data: memberRows, error: memberError },
                     { data: membershipRows, error: membershipError },
                 ] = await Promise.all([
                     supabase
                         .from("profiles")
-                        .select("id, full_name")
+                        .select("id, full_name, primary_school_id")
                         .neq("id", user.id)
                         .order("full_name", { ascending: true }),
 
@@ -107,7 +117,16 @@ export default function ChatPage() {
                 if (membershipError) throw membershipError;
                 if (cancelled) return;
 
-                setMembers((memberRows ?? []) as Member[]);
+                const campusMembers = chatContext.schoolId
+                    ? ((memberRows ?? []) as (Member & { primary_school_id?: string | null })[]).filter((member) => member.primary_school_id === chatContext.schoolId)
+                    : [];
+                setMembers(campusMembers);
+                // Support opening a direct-message composer from the member directory.
+                const requestedMemberId = new URLSearchParams(window.location.search).get("member");
+                if (requestedMemberId && campusMembers.some((member) => member.id === requestedMemberId)) {
+                    setSelectedMember(requestedMemberId);
+                    setShowNewChat(true);
+                }
 
                 const conversationIds = [
                     ...new Set(
@@ -154,10 +173,7 @@ export default function ChatPage() {
                     data: participantProfiles,
                     error: profileError,
                 } = participantIds.length > 0
-                    ? await supabase
-                        .from("profiles")
-                        .select("id, full_name")
-                        .in("id", participantIds)
+                    ? await supabase.rpc("chat_profile_names", { p_user_ids: participantIds })
                     : { data: [], error: null };
 
                 if (profileError) throw profileError;
@@ -300,10 +316,7 @@ export default function ChatPage() {
             const {
                 data: profiles,
                 error: profilesError,
-            } = await supabase
-                .from("profiles")
-                .select("id, full_name")
-                .in("id", participantIds);
+            } = await supabase.rpc("chat_profile_names", { p_user_ids: participantIds });
 
             if (cancelled) return;
 
@@ -317,7 +330,7 @@ export default function ChatPage() {
             }
 
             const rolesById = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
-            setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: rolesById.get(member.id) ?? "member" })));
+            setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, full_name: member.id === userId && isPlatformAdmin ? "SEA Admin" : member.full_name, role: rolesById.get(member.id) ?? "member" })));
         }
 
         async function loadMessages() {
@@ -403,6 +416,10 @@ export default function ChatPage() {
             setError("Choose a member first.");
             return;
         }
+        if (!schoolId) {
+            setError(isPlatformAdmin ? "Choose a campus from Global Admin → School Directory before starting a new chat." : "Your account is not linked to an active campus.");
+            return;
+        }
 
         setError("");
 
@@ -443,6 +460,7 @@ export default function ChatPage() {
                 .from("conversations")
                 .insert({
                     created_by: userId,
+                    school_id: schoolId,
                     is_group: false,
                     title: null,
                 })
@@ -497,9 +515,8 @@ export default function ChatPage() {
             setSelectedMember("");
         } catch (err) {
             console.error("Could not start conversation:", err);
-            setError(
-                "Could not start the conversation. Check your connection and permissions."
-            );
+            const detail = err && typeof err === "object" && "message" in err ? String(err.message) : "";
+            setError(detail ? `Could not start the conversation: ${detail}` : "Could not start the conversation. Check your connection and permissions.");
         }
     }
 
@@ -508,6 +525,10 @@ export default function ChatPage() {
 
         if (!userId) {
             setError("Please sign in again.");
+            return;
+        }
+        if (!schoolId) {
+            setError(isPlatformAdmin ? "Choose a campus from Global Admin → School Directory before creating a group." : "Your account is not linked to an active campus.");
             return;
         }
 
@@ -532,6 +553,7 @@ export default function ChatPage() {
                 .from("conversations")
                 .insert({
                     created_by: userId,
+                    school_id: schoolId,
                     is_group: true,
                     title,
                 })
@@ -583,7 +605,8 @@ export default function ChatPage() {
             setSelectedGroupMembers([]);
         } catch (err) {
             console.error("Could not create group:", err);
-            setError("Could not create the group. Please try again.");
+            const detail = err && typeof err === "object" && "message" in err ? String(err.message) : "";
+            setError(detail ? `Could not create the group: ${detail}` : "Could not create the group. Please try again.");
         } finally {
             setCreatingGroup(false);
         }
@@ -595,10 +618,10 @@ export default function ChatPage() {
         const { data: participantRows, error: participantError } = await supabase.from("conversation_members").select("user_id, role").eq("conversation_id", conversationId);
         if (participantError) throw participantError;
         const ids = (participantRows ?? []).map((row) => row.user_id);
-        const { data: profiles, error: profileError } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        const { data: profiles, error: profileError } = await supabase.rpc("chat_profile_names", { p_user_ids: ids });
         if (profileError) throw profileError;
         const roles = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
-        setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: roles.get(member.id) ?? "member" })));
+        setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, full_name: member.id === userId && isPlatformAdmin ? "SEA Admin" : member.full_name, role: roles.get(member.id) ?? "member" })));
     }
 
     async function addGroupMembers() {
@@ -740,7 +763,7 @@ export default function ChatPage() {
                     </div>
                     <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300 sm:flex">
                         <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        SEA community
+                        {isPlatformAdmin ? chatDisplayName : "SEA community"}
                     </div>
                 </header>
 
@@ -769,9 +792,9 @@ export default function ChatPage() {
 
                             {showNewChat && (
                                 <div className="mt-3 rounded-2xl border border-white/10 bg-[#102B46] p-3">
-                                    <p className="mb-2 text-sm font-bold">Start a direct message</p>
+                                    <p className="mb-2 text-sm font-bold">Start a student-to-student message</p>
                                     <select value={selectedMember} onChange={(event) => setSelectedMember(event.target.value)} className="w-full rounded-xl border border-white/10 bg-[#071522] px-3 py-3 text-sm text-white outline-none focus:border-[#F15A24]">
-                                        <option value="">Choose a SEA member</option>
+                                        <option value="">Choose a student</option>
                                         {members.map((member) => <option key={member.id} value={member.id}>{member.full_name || "SEA Member"}</option>)}
                                     </select>
                                     <div className="mt-2 flex gap-2">

@@ -189,7 +189,7 @@ export default function CreateEventPage() {
                             type="text"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            placeholder="UTSA Campus"
+                            placeholder="Campus location"
                             required
                             className="mt-2 w-full rounded-xl border px-4 py-3 outline-none focus:border-[#F15A24]"
                         />

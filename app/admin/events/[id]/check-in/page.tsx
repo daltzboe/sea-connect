@@ -14,7 +14,7 @@ export default async function EventCheckInPage({ params }: PageProps) {
 
     const supabase = await createSupabaseServerClient();
     const { data: event, error } = await supabase.from("events")
-        .select("id,title,event_date").eq("id", id).single();
+        .select("id,title,event_date").eq("id", id).eq("school_id", profile.primary_school_id!).single();
     if (error || !event) notFound();
 
     return (

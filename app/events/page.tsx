@@ -5,7 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 
 export default async function EventsPage() {
-    const { user } = await getCurrentProfile();
+    const { user, profile } = await getCurrentProfile();
 
     if (!user) {
         redirect("/signin");
@@ -18,6 +18,7 @@ export default async function EventsPage() {
         .select(
             "id, title, description, event_date, event_time, location, image_url"
         )
+        .eq("school_id", profile?.primary_school_id ?? "00000000-0000-0000-0000-000000000000")
         .order("event_date", { ascending: true })
         .order("event_time", { ascending: true });
 

@@ -1,3 +1,4 @@
+import { SchoolShortName } from "@/components/SchoolProvider";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -168,7 +169,7 @@ export default async function EventDetailsPage({ params }: EventPageProps) {
                         <p className="text-lg">🇹🇿 🇰🇪 🇺🇬 🇷🇼 🇸🇴</p>
                         <h2 className="mt-3 font-bold">Students of East Africa</h2>
                         <p className="mt-2 text-sm text-gray-400">
-                            Connecting our community at UTSA.
+                            Connecting our community at <SchoolShortName />.
                         </p>
                     </div>
                 </section>

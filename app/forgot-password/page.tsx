@@ -188,7 +188,7 @@ export default function ForgotPasswordPage() {
 
                 {/* Footer */}
                 <div className="mt-auto pt-8 text-center text-xs text-gray-500">
-                    Students of East Africa • UTSA
+                    Students of East Africa • SEAConnect
                 </div>
 
             </div>

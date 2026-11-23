@@ -20,6 +20,7 @@ export default async function AdminEventsPage() {
     const { data: events, error } = await supabase
         .from("events")
         .select("*")
+        .eq("school_id", profile.primary_school_id!)
         .order("event_date", { ascending: true });
 
     return (
