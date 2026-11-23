@@ -11,7 +11,7 @@ const items = [
     { href: "/announcements", label: "Announcements", icon: "◉" },
     { href: "/meetings", label: "Meetings", icon: "▣" },
     { href: "/members", label: "Members", icon: "♧" },
-    { href: "/chat", label: "Community chat", icon: "☷" },
+    { href: "/chat", label: "Student Chat", icon: "☷" },
     { href: "/notifications", label: "Notifications", icon: "♢" },
 ];
 
@@ -24,7 +24,7 @@ export default function BottomNav() {
             const active = pathname === item.href ||
                 (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
-                <Link key={item.href} href={item.href} onClick={() => setIsOpen(false)}
+                <Link key={item.href} href={item.href} prefetch={true} onClick={() => setIsOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${active
                         ? "bg-[#F15A24] text-white shadow-lg shadow-orange-950/20"
