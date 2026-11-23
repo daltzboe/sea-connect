@@ -38,6 +38,9 @@ export default function ChatPage() {
     );
 
     const [userId, setUserId] = useState("");
+    const [schoolId, setSchoolId] = useState<string | null>(null);
+    const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+    const [chatDisplayName, setChatDisplayName] = useState("SEA Member");
     const [members, setMembers] = useState<Member[]>([]);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeId, setActiveId] = useState("");
@@ -87,13 +90,20 @@ export default function ChatPage() {
 
                 setUserId(user.id);
 
+                const contextResponse = await fetch("/api/chat/context", { cache: "no-store" });
+                if (!contextResponse.ok) throw new Error("Could not load your chat permissions.");
+                const chatContext = await contextResponse.json() as { schoolId: string | null; isPlatformAdmin: boolean; chatDisplayName: string };
+                setSchoolId(chatContext.schoolId);
+                setIsPlatformAdmin(chatContext.isPlatformAdmin);
+                setChatDisplayName(chatContext.chatDisplayName || "SEA Member");
+
                 const [
                     { data: memberRows, error: memberError },
                     { data: membershipRows, error: membershipError },
                 ] = await Promise.all([
                     supabase
                         .from("profiles")
-                        .select("id, full_name")
+                        .select("id, full_name, primary_school_id")
                         .neq("id", user.id)
                         .order("full_name", { ascending: true }),
 
@@ -107,7 +117,10 @@ export default function ChatPage() {
                 if (membershipError) throw membershipError;
                 if (cancelled) return;
 
-                setMembers((memberRows ?? []) as Member[]);
+                const campusMembers = chatContext.schoolId
+                    ? ((memberRows ?? []) as (Member & { primary_school_id?: string | null })[]).filter((member) => member.primary_school_id === chatContext.schoolId)
+                    : [];
+                setMembers(campusMembers);
 
                 const conversationIds = [
                     ...new Set(
@@ -317,7 +330,7 @@ export default function ChatPage() {
             }
 
             const rolesById = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
-            setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: rolesById.get(member.id) ?? "member" })));
+            setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, full_name: member.id === userId && isPlatformAdmin ? "SEA Admin" : member.full_name, role: rolesById.get(member.id) ?? "member" })));
         }
 
         async function loadMessages() {
@@ -403,6 +416,10 @@ export default function ChatPage() {
             setError("Choose a member first.");
             return;
         }
+        if (!schoolId) {
+            setError(isPlatformAdmin ? "Choose a campus from Global Admin → School Directory before starting a new chat." : "Your account is not linked to an active campus.");
+            return;
+        }
 
         setError("");
 
@@ -443,6 +460,7 @@ export default function ChatPage() {
                 .from("conversations")
                 .insert({
                     created_by: userId,
+                    school_id: schoolId,
                     is_group: false,
                     title: null,
                 })
@@ -510,6 +528,10 @@ export default function ChatPage() {
             setError("Please sign in again.");
             return;
         }
+        if (!schoolId) {
+            setError(isPlatformAdmin ? "Choose a campus from Global Admin → School Directory before creating a group." : "Your account is not linked to an active campus.");
+            return;
+        }
 
         if (!title) {
             setError("Enter a name for your group.");
@@ -532,6 +554,7 @@ export default function ChatPage() {
                 .from("conversations")
                 .insert({
                     created_by: userId,
+                    school_id: schoolId,
                     is_group: true,
                     title,
                 })
@@ -598,7 +621,7 @@ export default function ChatPage() {
         const { data: profiles, error: profileError } = await supabase.from("profiles").select("id, full_name").in("id", ids);
         if (profileError) throw profileError;
         const roles = new Map((participantRows ?? []).map((row) => [row.user_id, row.role as "admin" | "member"]));
-        setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, role: roles.get(member.id) ?? "member" })));
+        setActiveGroupMembers(((profiles ?? []) as Member[]).map((member) => ({ ...member, full_name: member.id === userId && isPlatformAdmin ? "SEA Admin" : member.full_name, role: roles.get(member.id) ?? "member" })));
     }
 
     async function addGroupMembers() {
