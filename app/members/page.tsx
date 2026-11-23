@@ -193,6 +193,14 @@ export default async function MembersPage() {
 
                                     </div>
 
+                                    <Link
+                                        href={`/chat?member=${member.id}`}
+                                        prefetch={true}
+                                        className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#F15A24] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-orange-500"
+                                    >
+                                        Message student
+                                    </Link>
+
                                     {/* Details */}
                                     {member.country && (
                                         <div className="mt-5 border-t border-gray-100 pt-4">
