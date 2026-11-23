@@ -49,7 +49,7 @@ export default async function AdminMembersPage() {
                     </h1>
 
                     <p className="mt-2 text-sm text-gray-300">
-                        Manage the official SEA member directory.
+                        Official SEA roster: recognized members, whether or not they have a SEAConnect login. This list is separate from registered Users.
                     </p>
 
                 </div>
