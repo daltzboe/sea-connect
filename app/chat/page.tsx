@@ -509,9 +509,8 @@ export default function ChatPage() {
             setSelectedMember("");
         } catch (err) {
             console.error("Could not start conversation:", err);
-            setError(
-                "Could not start the conversation. Check your connection and permissions."
-            );
+            const detail = err && typeof err === "object" && "message" in err ? String(err.message) : "";
+            setError(detail ? `Could not start the conversation: ${detail}` : "Could not start the conversation. Check your connection and permissions.");
         }
     }
 
@@ -600,7 +599,8 @@ export default function ChatPage() {
             setSelectedGroupMembers([]);
         } catch (err) {
             console.error("Could not create group:", err);
-            setError("Could not create the group. Please try again.");
+            const detail = err && typeof err === "object" && "message" in err ? String(err.message) : "";
+            setError(detail ? `Could not create the group: ${detail}` : "Could not create the group. Please try again.");
         } finally {
             setCreatingGroup(false);
         }
@@ -757,7 +757,7 @@ export default function ChatPage() {
                     </div>
                     <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-300 sm:flex">
                         <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                        {isPlatformAdmin ? "SEA Admin" : "SEA community"}
+                        {isPlatformAdmin ? chatDisplayName : "SEA community"}
                     </div>
                 </header>
 
