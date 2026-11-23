@@ -58,7 +58,7 @@ export default async function AdminUsersPage() {
                     </h1>
 
                     <p className="mt-2 text-sm text-gray-300">
-                        Manage SEAConnect accounts and roles.
+                        Registered accounts: people who can sign in to SEAConnect. Campus roles are managed separately from the official SEA roster.
                     </p>
 
                 </div>
