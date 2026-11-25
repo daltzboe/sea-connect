@@ -211,9 +211,21 @@ export default function SignIn() {
 
                 </form>
 
-                <p className="mt-7 text-center text-xs text-gray-500">
-                    Account registration is temporarily closed. Contact a SEAConnect administrator for access.
-                </p>
+                {/* Sign Up */}
+                <div className="mt-7 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-center">
+
+                    <p className="text-sm text-gray-400">
+                        Don't have an account?
+                    </p>
+
+                    <Link
+                        href="/signup"
+                        className="mt-1 inline-block font-semibold text-[#F4C430] transition hover:text-white"
+                    >
+                        Create your SEAConnect account →
+                    </Link>
+
+                </div>
 
                 {/* Footer */}
                 <div className="mt-auto pt-8 text-center text-xs text-gray-500">
