@@ -153,13 +153,6 @@ export default function Home() {
             Sign In
           </Link>
 
-          <Link
-            href="/signup"
-            prefetch={true}
-            className="flex w-full items-center justify-center rounded-2xl border border-[#F4C430] px-6 py-4 font-semibold text-[#F4C430] transition hover:bg-[#F4C430]/10 active:scale-[0.98]"
-          >
-            Create Account
-          </Link>
         </section>
 
         {/* Footer */}
