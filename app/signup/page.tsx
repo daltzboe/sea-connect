@@ -124,6 +124,7 @@ export default function SignUp() {
                 email: cleanEmail,
                 password,
                 options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                     data: {
                         full_name: cleanName,
                         country,
