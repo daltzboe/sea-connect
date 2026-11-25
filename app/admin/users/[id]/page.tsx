@@ -69,7 +69,7 @@ export default async function ManageUserPage({ params }: PageProps) {
 
         // Delete authentication account
         const { error: authError } =
-            await adminSupabase.auth.admin.deleteUser(id);
+            await adminSupabase.auth.admin.deleteUser(id, false);
 
         if (authError) {
             throw new Error(authError.message);
