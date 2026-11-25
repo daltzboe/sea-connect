@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import LogoutButton from "@/components/LogoutButton";
 import { getCurrentProfile } from "@/lib/profile";
 import EnableNotifications from "@/components/EnableNotifications";
+import DeleteMyAccountButton from "@/components/DeleteMyAccountButton";
 
 export default async function ProfilePage() {
     const { user, profile } = await getCurrentProfile();
@@ -85,8 +86,8 @@ export default async function ProfilePage() {
                                 }`}
                             >
                                 {isOfficer
-                                    ? "SEA Officer"
-                                    : "SEA Member"}
+                                    ? "UTSA Officer"
+                                    : "UTSA Member"}
                             </span>
 
                         </div>
@@ -330,6 +331,19 @@ export default async function ProfilePage() {
 
                     </div>
 
+                </section>
+
+                {/* DELETE MY ACCOUNT */}
+                <section className="mt-8">
+                    <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+                        <p className="font-bold text-red-700">Delete your account</p>
+                        <p className="mt-2 text-sm leading-5 text-gray-500">
+                            Permanently delete your SEAConnect login and profile. This cannot be undone.
+                        </p>
+                        <div className="mt-4">
+                            <DeleteMyAccountButton />
+                        </div>
+                    </div>
                 </section>
 
                 {/* FOOTER */}
